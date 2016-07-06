@@ -5,7 +5,7 @@
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% transmute_ distinct_
-#' @importFrom DBI dbWriteTable
+#' @importFrom RPostgreSQL dbWriteTable
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
 store_datasource <- function(datasource, conn){
   assert_that(inherits(datasource, "data.frame"))

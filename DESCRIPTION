@@ -9,11 +9,10 @@ Depends:
     R (>= 3.2.0)
 Imports:
     assertthat,
-    DBI,
+    RPostgreSQL,
     digest,
     dplyr
 Suggests:
-    n2khelper,
     testthat
 License: GPL-3
 Encoding: UTF-8
