@@ -7,6 +7,11 @@ Description: The functions are useful to store the results from https://
     github.com/inbo/n2kresult.
 Depends:
     R (>= 3.2.0)
+Imports:
+    assertthat
+Suggests:
+    n2khelper,
+    testthat
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
