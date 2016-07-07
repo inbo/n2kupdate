@@ -5,7 +5,8 @@
 #' @param password the password for the user. Defaults to "unittest".
 #' @param port The port of host. Defaults to 5432.
 #' @export
-#' @importFrom RPostgreSQL dbConnect PostgreSQL
+#' @importFrom RPostgreSQL PostgreSQL
+#' @importFrom DBI dbConnect
 connect_db <- function(
   host = "localhost",
   dbname = "n2kunittest",
