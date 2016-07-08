@@ -52,6 +52,9 @@ test_that("it stores the correct data", {
   c("staging", paste0("datasource_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
+  c("staging", paste0("datasource_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
   ut.datasource %>%
     select_(description = ~connect_method) %>%
     distinct_() %>%
@@ -63,6 +66,34 @@ test_that("it stores the correct data", {
     distinct_() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type")
+    )
+  ut.datasource %>%
+    select_(~description, ~datasource_type, ~connect_method) %>%
+    arrange_(~datasource_type, ~description, ~connect_method) %>%
+    expect_identical(
+      dbGetQuery(
+        conn, "
+        SELECT
+          d.description,
+          dt.description AS datasource_type,
+          cm.description AS connect_method
+        FROM
+          (
+            public.datasource AS d
+          INNER JOIN
+            public.datasource_type AS dt
+          ON
+            d.datasource_type = dt.id
+          )
+        INNER JOIN
+          public.connect_method AS cm
+        ON
+          d.connect_method = cm.id
+        ORDER BY
+          d.description,
+          dt.description,
+          cm.description;
+      ")
     )
   DBI::dbDisconnect(conn)
 })
