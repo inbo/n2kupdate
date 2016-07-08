@@ -37,10 +37,10 @@ test_that("input is suitable", {
       store_datasource(conn),
     "datasource does not have name connect_method"
   )
-  dbDisconnect(conn)
+  DBI::dbDisconnect(conn)
 })
 test_that("it writes the correct data to the staging tables", {
   conn <- connect_db()
   expect_true(store_datasource(datasource = ut.datasource, conn = conn))
-  dbDisconnect(conn)
+  DBI::dbDisconnect(conn)
 })

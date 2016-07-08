@@ -3,6 +3,7 @@
 export(connect_db)
 export(store_connect_method)
 export(store_datasource)
+export(truncate_public)
 importFrom(DBI,dbConnect)
 importFrom(DBI,dbGetQuery)
 importFrom(DBI,dbQuoteIdentifier)
