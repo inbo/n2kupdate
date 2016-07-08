@@ -13,7 +13,8 @@ Imports:
     digest,
     dplyr,
     methods,
-    RPostgreSQL
+    RPostgreSQL,
+    tidyr
 Suggests:
     testthat
 License: GPL-3
