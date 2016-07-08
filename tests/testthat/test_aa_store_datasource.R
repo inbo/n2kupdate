@@ -39,8 +39,14 @@ test_that("input is suitable", {
   )
   DBI::dbDisconnect(conn)
 })
-test_that("it writes the correct data to the staging tables", {
+test_that("it stores the correct data", {
   conn <- connect_db()
   expect_true(store_datasource(datasource = ut.datasource, conn = conn))
+  ut.datasource %>%
+    select_(description = ~connect_method) %>%
+    distinct_() %>%
+    expect_identical(
+      dbGetQuery(conn, "SELECT description FROM public.connect_method")
+    )
   DBI::dbDisconnect(conn)
 })
