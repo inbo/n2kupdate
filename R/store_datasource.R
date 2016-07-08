@@ -30,5 +30,5 @@ store_datasource <- function(datasource, conn){
   )
   dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
   dbRemoveTable(conn, c("staging", paste0("connect_method_", hash)))
-  return(TRUE)
+  return(hash)
 }

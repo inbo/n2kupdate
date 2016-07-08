@@ -42,7 +42,16 @@ test_that("input is suitable", {
 })
 test_that("it stores the correct data", {
   conn <- connect_db()
-  expect_true(store_datasource(datasource = ut.datasource, conn = conn))
+  expect_is(
+    hash <- store_datasource(datasource = ut.datasource, conn = conn),
+    "character"
+  )
+  c("staging", paste0("connect_method_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datasource_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
   ut.datasource %>%
     select_(description = ~connect_method) %>%
     distinct_() %>%
