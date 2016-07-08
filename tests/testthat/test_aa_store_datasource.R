@@ -48,5 +48,11 @@ test_that("it stores the correct data", {
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.connect_method")
     )
+  ut.datasource %>%
+    select_(description = ~datasource_type) %>%
+    distinct_() %>%
+    expect_identical(
+      dbGetQuery(conn, "SELECT description FROM public.datasource_type")
+    )
   DBI::dbDisconnect(conn)
 })

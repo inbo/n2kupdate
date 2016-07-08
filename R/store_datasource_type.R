@@ -1,44 +1,43 @@
-#' Store a vector of connect methods
-#' @param connect_method the vector with connect methods.
-#' @param hash the hash of the update session
-#' @param conn a DBIconnection
+#' Store a vector of datasource types
+#' @param datasource_type the vector with connect methods.
+#' @inheritParams store_connect_method
 #' @export
 #' @importFrom assertthat assert_that noNA is.string
 #' @importFrom methods is
 #' @importFrom dplyr data_frame %>%
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
-store_connect_method <- function(connect_method, hash, conn){
-  assert_that(is(connect_method, "character"))
-  assert_that(noNA(connect_method))
+store_datasource_type <- function(datasource_type, hash, conn){
+  assert_that(is(datasource_type, "character"))
+  assert_that(noNA(datasource_type))
   assert_that(is.string(hash))
   assert_that(inherits(conn, "DBIConnection"))
 
   data_frame(
-    description = sort(unique(connect_method)),
+    description = sort(unique(datasource_type)),
     id = NA_integer_
   ) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
-      name = c("staging", paste0("connect_method_", hash)),
+      name = c("staging", paste0("datasource_type_", hash)),
       row.names = FALSE
     )
-  connect_method <- paste0("connect_method_", hash) %>%
+  datasource_type <- paste0("datasource_type_", hash) %>%
     dbQuoteIdentifier(conn = conn)
   sprintf("
-    INSERT INTO public.connect_method
+    INSERT INTO public.datasource_type
       (description)
     SELECT
       s.description
     FROM
       staging.%s AS s
     LEFT JOIN
-      public.connect_method AS p
+      public.datasource_type AS p
     ON
       s.description = p.description
     WHERE
       p.id IS NULL",
-    connect_method
+    datasource_type
   ) %>%
     dbGetQuery(conn = conn)
   sprintf("
@@ -49,14 +48,14 @@ store_connect_method <- function(connect_method, hash, conn){
     FROM
       staging.%s AS s
     INNER JOIN
-      public.connect_method AS p
+      public.datasource_type AS p
     ON
       s.description = p.description
     WHERE
       t.description = s.description",
-    connect_method,
-    connect_method
+    datasource_type,
+    datasource_type
   ) %>%
     dbGetQuery(conn = conn)
-  return(connect_method)
+  return(datasource_type)
 }

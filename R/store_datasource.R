@@ -16,7 +16,17 @@ store_datasource <- function(datasource, conn){
   assert_that(has_name(datasource, "connect_method"))
 
   hash <- sha1(list(datasource, Sys.time()))
-  connect_method <- store_connect_method(datasource$connect_method, hash, conn)
+  connect_method <- store_connect_method(
+    connect_method = datasource$connect_method,
+    hash = hash,
+    conn = conn
+  )
+  datasource_type <- store_datasource_type(
+    datasource_type = datasource$datasource_type,
+    hash = hash,
+    conn = conn
+  )
+  dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
   dbRemoveTable(conn, c("staging", paste0("connect_method_", hash)))
   return(TRUE)
 }
