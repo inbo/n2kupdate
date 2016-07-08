@@ -9,6 +9,7 @@ ut.datasource <- data.frame(
   dbname = "n2kresult",
   stringsAsFactors = FALSE
 )
+ut <- sprintf("Unit test %i", 1:2)
 test_that("input is suitable", {
   expect_error(
     store_datasource(datasource = "junk"),
@@ -53,6 +54,64 @@ test_that("it stores the correct data", {
     distinct_() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type")
+    )
+  DBI::dbDisconnect(conn)
+})
+test_that("subfunction work correctly", {
+  conn <- connect_db()
+  expect_is(
+    connect_method <- store_connect_method(connect_method = ut, conn = conn),
+    "SQL"
+  )
+  c(ut.datasource$connect_method, ut) %>%
+    unique() %>%
+    sort() %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT description FROM public.connect_method"
+      )$description
+    )
+  expect_is(
+    connect_method <- store_connect_method(connect_method = ut, conn = conn),
+    "SQL"
+  )
+  expect_false(DBI::dbExistsTable(conn, c("staging", connect_method)))
+  c(ut.datasource$connect_method, ut) %>%
+    unique() %>%
+    sort() %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT description FROM public.connect_method"
+      )$description
+    )
+  expect_is(
+    connect_method <- store_connect_method(connect_method = ut, conn = conn),
+    "SQL"
+  )
+  c(ut.datasource$connect_method, ut) %>%
+    unique() %>%
+    sort() %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT description FROM public.connect_method"
+      )$description
+    )
+  expect_is(
+    datasource_type <- store_datasource_type(datasource_type = ut, conn = conn),
+    "SQL"
+  )
+  expect_false(DBI::dbExistsTable(conn, c("staging", datasource_type)))
+  c(ut.datasource$datasource_type, ut) %>%
+    unique() %>%
+    sort() %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT description FROM public.datasource_type"
+      )$description
     )
   DBI::dbDisconnect(conn)
 })

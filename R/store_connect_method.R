@@ -2,16 +2,24 @@
 #' @param connect_method the vector with connect methods.
 #' @param hash the hash of the update session
 #' @param conn a DBIconnection
+#' @param clean remove the staging table after update. Defaults to TRUE
 #' @export
-#' @importFrom assertthat assert_that noNA is.string
+#' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
+#' @importFrom digest sha1
 #' @importFrom dplyr data_frame %>%
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
-store_connect_method <- function(connect_method, hash, conn){
+store_connect_method <- function(connect_method, hash, conn, clean = TRUE){
   assert_that(is(connect_method, "character"))
   assert_that(noNA(connect_method))
-  assert_that(is.string(hash))
+  if (missing(hash)) {
+    hash <- sha1(list(connect_method, Sys.time()))
+  } else {
+    assert_that(is.string(hash))
+  }
   assert_that(inherits(conn, "DBIConnection"))
+  assert_that(is.flag(clean))
+  assert_that(noNA(clean))
 
   data_frame(
     description = sort(unique(connect_method)),
@@ -58,5 +66,8 @@ store_connect_method <- function(connect_method, hash, conn){
     connect_method
   ) %>%
     dbGetQuery(conn = conn)
+  if (clean) {
+    dbRemoveTable(conn, c("staging", paste0("connect_method_", hash)))
+  }
   return(connect_method)
 }

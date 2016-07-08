@@ -4,7 +4,7 @@
 \alias{store_connect_method}
 \title{Store a vector of connect methods}
 \usage{
-store_connect_method(connect_method, hash, conn)
+store_connect_method(connect_method, hash, conn, clean = TRUE)
 }
 \arguments{
 \item{connect_method}{the vector with connect methods.}
@@ -12,6 +12,8 @@ store_connect_method(connect_method, hash, conn)
 \item{hash}{the hash of the update session}
 
 \item{conn}{a DBIconnection}
+
+\item{clean}{remove the staging table after update. Defaults to TRUE}
 }
 \description{
 Store a vector of connect methods

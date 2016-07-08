@@ -19,12 +19,14 @@ store_datasource <- function(datasource, conn){
   connect_method <- store_connect_method(
     connect_method = datasource$connect_method,
     hash = hash,
-    conn = conn
+    conn = conn,
+    clean = FALSE
   )
   datasource_type <- store_datasource_type(
     datasource_type = datasource$datasource_type,
     hash = hash,
-    conn = conn
+    conn = conn,
+    clean = FALSE
   )
   dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
   dbRemoveTable(conn, c("staging", paste0("connect_method_", hash)))

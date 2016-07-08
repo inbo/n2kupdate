@@ -7,8 +7,8 @@ truncate_public <- function(conn){
 
   c(
     "analysis_dataset", "anomaly", "connect_method", "datafield", "dataset",
-    "datasource", "datasource_value", "location", "location_group_location",
-    "source_species", "source_species_species"
+    "datasource", "datasource_type", "datasource_value", "location",
+    "location_group_location", "source_species", "source_species_species"
   ) %>%
     dbQuoteIdentifier(conn = conn) %>%
     sprintf(fmt = "public.%s") %>%

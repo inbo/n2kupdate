@@ -4,7 +4,7 @@
 \alias{store_datasource_type}
 \title{Store a vector of datasource types}
 \usage{
-store_datasource_type(datasource_type, hash, conn)
+store_datasource_type(datasource_type, hash, conn, clean = TRUE)
 }
 \arguments{
 \item{datasource_type}{the vector with connect methods.}
@@ -12,6 +12,8 @@ store_datasource_type(datasource_type, hash, conn)
 \item{hash}{the hash of the update session}
 
 \item{conn}{a DBIconnection}
+
+\item{clean}{remove the staging table after update. Defaults to TRUE}
 }
 \description{
 Store a vector of datasource types
