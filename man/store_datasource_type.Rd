@@ -7,7 +7,7 @@
 store_datasource_type(datasource_type, hash, conn, clean = TRUE)
 }
 \arguments{
-\item{datasource_type}{the vector with connect methods.}
+\item{datasource_type}{the vector with datasource types.}
 
 \item{hash}{the hash of the update session}
 

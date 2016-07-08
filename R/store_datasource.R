@@ -28,6 +28,15 @@ store_datasource <- function(datasource, conn){
     conn = conn,
     clean = FALSE
   )
+  datasource_parameter <- datasource %>%
+    select_(~-description, ~-datasource_type, ~-connect_method) %>%
+    colnames() %>%
+    store_datasource_parameter(
+      hash = hash,
+      conn = conn,
+      clean = FALSE
+    )
+
   datasource %>%
     transmute_(
       id = NA_integer_,
@@ -115,6 +124,7 @@ store_datasource <- function(datasource, conn){
     dbGetQuery(conn = conn)
   stopifnot(
     dbRemoveTable(conn, c("staging", paste0("datasource_", hash))),
+    dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash))),
     dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash))),
     dbRemoveTable(conn, c("staging", paste0("connect_method_", hash)))
   )

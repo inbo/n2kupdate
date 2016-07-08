@@ -1,5 +1,5 @@
-#' Store a vector of datasource types
-#' @param datasource_type the vector with datasource types.
+#' Store a vector of datasource parameters
+#' @param datasource_parameter the vector with datasource parameters.
 #' @inheritParams store_connect_method
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
@@ -7,11 +7,16 @@
 #' @importFrom digest sha1
 #' @importFrom dplyr data_frame %>%
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
-store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
-  assert_that(is(datasource_type, "character"))
-  assert_that(noNA(datasource_type))
+store_datasource_parameter <- function(
+  datasource_parameter,
+  hash,
+  conn,
+  clean = TRUE
+){
+  assert_that(is(datasource_parameter, "character"))
+  assert_that(noNA(datasource_parameter))
   if (missing(hash)) {
-    hash <- sha1(list(datasource_type, Sys.time()))
+    hash <- sha1(list(datasource_parameter, Sys.time()))
   } else {
     assert_that(is.string(hash))
   }
@@ -20,31 +25,31 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
   assert_that(noNA(clean))
 
   data_frame(
-    description = sort(unique(datasource_type)),
+    description = sort(unique(datasource_parameter)),
     id = NA_integer_
   ) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
-      name = c("staging", paste0("datasource_type_", hash)),
+      name = c("staging", paste0("datasource_parameter_", hash)),
       row.names = FALSE
     )
-  datasource_type <- paste0("datasource_type_", hash) %>%
+  datasource_parameter <- paste0("datasource_parameter_", hash) %>%
     dbQuoteIdentifier(conn = conn)
   sprintf("
-    INSERT INTO public.datasource_type
+    INSERT INTO public.datasource_parameter
       (description)
     SELECT
       s.description
     FROM
       staging.%s AS s
     LEFT JOIN
-      public.datasource_type AS p
+      public.datasource_parameter AS p
     ON
       s.description = p.description
     WHERE
       p.id IS NULL",
-    datasource_type
+    datasource_parameter
   ) %>%
     dbGetQuery(conn = conn)
   sprintf("
@@ -55,17 +60,17 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
     FROM
       staging.%s AS s
     INNER JOIN
-      public.datasource_type AS p
+      public.datasource_parameter AS p
     ON
       s.description = p.description
     WHERE
       t.description = s.description",
-    datasource_type,
-    datasource_type
+    datasource_parameter,
+    datasource_parameter
   ) %>%
     dbGetQuery(conn = conn)
   if (clean) {
-    dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash)))
   }
-  return(datasource_type)
+  return(datasource_parameter)
 }

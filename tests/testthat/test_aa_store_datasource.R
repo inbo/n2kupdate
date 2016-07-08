@@ -1,6 +1,5 @@
 context("store_datasource")
 require(dplyr, quietly = TRUE)
-require(RPostgreSQL, quietly = TRUE)
 ut.datasource <- data.frame(
   description = c("Unit test datasource 1", "Unit test datasource 2"),
   datasource_type = "PostgreSQL",
@@ -52,6 +51,9 @@ test_that("it stores the correct data", {
   c("staging", paste0("datasource_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
+  c("staging", paste0("datasource_parameter_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
   c("staging", paste0("datasource_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
@@ -66,6 +68,21 @@ test_that("it stores the correct data", {
     distinct_() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type")
+    )
+  ut.datasource %>%
+    select_(~-description, ~-datasource_type, ~-connect_method) %>%
+    colnames() %>%
+    sort() %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT
+          description
+        FROM
+          public.datasource_parameter
+        ORDER BY
+          description"
+      )$description
     )
   ut.datasource %>%
     select_(~description, ~datasource_type, ~connect_method) %>%
@@ -99,6 +116,8 @@ test_that("it stores the correct data", {
 })
 test_that("subfunction work correctly", {
   conn <- connect_db()
+
+  # connect_method
   expect_is(
     connect_method <- store_connect_method(connect_method = ut, conn = conn),
     "SQL"
@@ -117,28 +136,8 @@ test_that("subfunction work correctly", {
     "SQL"
   )
   expect_false(DBI::dbExistsTable(conn, c("staging", connect_method)))
-  c(ut.datasource$connect_method, ut) %>%
-    unique() %>%
-    sort() %>%
-    expect_identical(
-      dbGetQuery(
-        conn,
-        "SELECT description FROM public.connect_method"
-      )$description
-    )
-  expect_is(
-    connect_method <- store_connect_method(connect_method = ut, conn = conn),
-    "SQL"
-  )
-  c(ut.datasource$connect_method, ut) %>%
-    unique() %>%
-    sort() %>%
-    expect_identical(
-      dbGetQuery(
-        conn,
-        "SELECT description FROM public.connect_method"
-      )$description
-    )
+
+  # datasource_type
   expect_is(
     datasource_type <- store_datasource_type(datasource_type = ut, conn = conn),
     "SQL"
@@ -153,5 +152,33 @@ test_that("subfunction work correctly", {
         "SELECT description FROM public.datasource_type"
       )$description
     )
+
+  # datasource_parameter
+  expect_is(
+    datasource_parameter <- store_datasource_parameter(
+      datasource_parameter = ut,
+      conn = conn
+    ),
+    "SQL"
+  )
+  expect_false(DBI::dbExistsTable(conn, c("staging", datasource_parameter)))
+  ut.datasource %>%
+    select_(~-description, ~-datasource_type, ~-connect_method) %>%
+    colnames() %>%
+    c(ut) %>%
+    unique() %>%
+    sort() %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT
+          description
+        FROM
+          public.datasource_parameter
+        ORDER BY
+          description;"
+      )$description
+    )
+
   DBI::dbDisconnect(conn)
 })
