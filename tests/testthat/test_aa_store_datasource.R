@@ -7,7 +7,7 @@ ut.datasource <- data.frame(
   dbname = "n2kresult",
   stringsAsFactors = FALSE
 )
-ut <- sprintf("Unit test %i", 1:2)
+ut <- sprintf("unit test %i", 1:2)
 test_that("input is suitable", {
   expect_error(
     store_datasource(datasource = "junk"),
@@ -45,9 +45,6 @@ test_that("it stores new data correctly", {
     hash <- store_datasource(datasource = ut.datasource, conn = conn),
     "character"
   )
-  c("staging", paste0("connect_method_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_false()
   c("staging", paste0("datasource_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
@@ -61,19 +58,13 @@ test_that("it stores new data correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datasource %>%
-    select_(description = ~connect_method) %>%
-    distinct_() %>%
-    expect_identical(
-      dbGetQuery(conn, "SELECT description FROM public.connect_method")
-    )
-  ut.datasource %>%
     select_(description = ~datasource_type) %>%
     distinct_() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type")
     )
   datasource_parameters <- ut.datasource %>%
-    select_(~-description, ~-datasource_type, ~-connect_method) %>%
+    select_(~-description, ~-datasource_type) %>%
     colnames() %>%
     sort()
   expect_identical(
@@ -89,35 +80,26 @@ test_that("it stores new data correctly", {
     )$description
   )
   ut.datasource %>%
-    select_(~description, ~datasource_type, ~connect_method) %>%
-    arrange_(~datasource_type, ~description, ~connect_method) %>%
+    select_(~description, ~datasource_type) %>%
+    arrange_(~datasource_type, ~description) %>%
     expect_identical(
       dbGetQuery(
         conn, "
         SELECT
           d.description,
-          dt.description AS datasource_type,
-          cm.description AS connect_method
+          dt.description AS datasource_type
         FROM
-          (
-            public.datasource AS d
-          INNER JOIN
-            public.datasource_type AS dt
-          ON
-            d.datasource_type = dt.id
-          )
+          public.datasource AS d
         INNER JOIN
-          public.connect_method AS cm
+          public.datasource_type AS dt
         ON
-          d.connect_method = cm.id
+          d.datasource_type = dt.id
         ORDER BY
           d.description,
-          dt.description,
-          cm.description;
+          dt.description;
       ")
     )
   ut.datasource %>%
-    select_(~-connect_method) %>%
     gather_(
       key_col = "parameter",
       value_col = "value",
@@ -166,27 +148,6 @@ test_that("it stores new data correctly", {
 test_that("subfunction work correctly", {
   conn <- connect_db()
 
-  # connect_method
-  expect_is(
-    connect_method <- store_connect_method(connect_method = ut, conn = conn),
-    "SQL"
-  )
-  connect_method@.Data %>%
-    gsub(pattern = "\\\"", replacement = "") %>%
-    c("staging") %>%
-    rev() %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_false()
-  c(ut.datasource$connect_method, ut) %>%
-    unique() %>%
-    sort() %>%
-    expect_identical(
-      dbGetQuery(
-        conn,
-        "SELECT description FROM public.connect_method"
-      )$description
-    )
-
   # datasource_type
   expect_is(
     datasource_type <- store_datasource_type(datasource_type = ut, conn = conn),
@@ -223,7 +184,7 @@ test_that("subfunction work correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datasource %>%
-    select_(~-description, ~-datasource_type, ~-connect_method) %>%
+    select_(~-description, ~-datasource_type) %>%
     colnames() %>%
     c(ut) %>%
     unique() %>%

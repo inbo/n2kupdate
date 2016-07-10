@@ -1,6 +1,6 @@
 #' Store a vector of datasource types
 #' @param datasource_type the vector with datasource types.
-#' @inheritParams store_connect_method
+#' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is

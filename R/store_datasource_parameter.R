@@ -1,6 +1,8 @@
 #' Store a vector of datasource parameters
 #' @param datasource_parameter the vector with datasource parameters.
-#' @inheritParams store_connect_method
+#' @param hash the hash of the update session
+#' @param conn a DBIconnection
+#' @param clean remove the staging table after update. Defaults to TRUE
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is

@@ -1,5 +1,5 @@
 #' Truncate all tables in the public schema: USE WITH CATION
-#' @inheritParams store_connect_method
+#' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that
 truncate_public <- function(conn){
@@ -7,7 +7,7 @@ truncate_public <- function(conn){
 
   c(
     "analysis", "analysis_dataset", "analysis_relation", "analysis_version",
-    "analysis_version_r_package", "anomaly", "anomaly_type", "connect_method",
+    "analysis_version_r_package", "anomaly", "anomaly_type",
     "contrast", "contrast_coefficient", "datafield", "datafield_type",
     "dataset", "datasource", "datasource_parameter", "datasource_type",
     "datasource_value", "location", "location_group", "location_group_location",

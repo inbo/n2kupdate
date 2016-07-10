@@ -1,6 +1,6 @@
 #' store a datasource in the database
 #' @param datasource a data.frame with datasource metadata
-#' @inheritParams store_connect_method
+#' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
@@ -17,12 +17,6 @@ store_datasource <- function(datasource, conn){
   assert_that(has_name(datasource, "connect_method"))
 
   hash <- sha1(list(datasource, Sys.time()))
-  connect_method <- store_connect_method(
-    connect_method = datasource$connect_method,
-    hash = hash,
-    conn = conn,
-    clean = FALSE
-  )
   datasource_type <- store_datasource_type(
     datasource_type = datasource$datasource_type,
     hash = hash,
@@ -30,7 +24,7 @@ store_datasource <- function(datasource, conn){
     clean = FALSE
   )
   datasource_parameters <- datasource %>%
-    select_(~-description, ~-datasource_type, ~-connect_method) %>%
+    select_(~-description, ~-datasource_type) %>%
     colnames()
   datasource_parameter <- store_datasource_parameter(
     datasource_parameters,
@@ -43,8 +37,7 @@ store_datasource <- function(datasource, conn){
     transmute_(
       id = NA_integer_,
       ~description,
-      ~datasource_type,
-      ~connect_method
+      ~datasource_type
     ) %>%
     arrange_(~datasource_type, ~description) %>%
     as.data.frame() %>%
@@ -57,24 +50,17 @@ store_datasource <- function(datasource, conn){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.datasource
-      (description, datasource_type, connect_method)
+      (description, datasource_type)
     SELECT
       d.description,
-      dt.id AS datasource_type,
-      cm.id AS connect_method
+      dt.id AS datasource_type
     FROM
       (
-        (
-          staging.%s AS d
-        INNER JOIN
-          staging.%s AS dt
-        ON
-          d.datasource_type = dt.description
-        )
+        staging.%s AS d
       INNER JOIN
-        staging.%s AS cm
+        staging.%s AS dt
       ON
-        d.connect_method = cm.description
+        d.datasource_type = dt.description
       )
     LEFT JOIN
       public.datasource AS p
@@ -85,8 +71,7 @@ store_datasource <- function(datasource, conn){
       p.id IS NULL;
     ",
     datasource.sql,
-    datasource_type,
-    connect_method
+    datasource_type
   ) %>%
     dbGetQuery(conn = conn)
   sprintf("
@@ -96,17 +81,11 @@ store_datasource <- function(datasource, conn){
       id = p.id
     FROM
       (
-        (
-          staging.%s AS d
-        INNER JOIN
-          staging.%s AS dt
-        ON
-          d.datasource_type = dt.description
-        )
+        staging.%s AS d
       INNER JOIN
-        staging.%s AS cm
+        staging.%s AS dt
       ON
-        d.connect_method = cm.description
+        d.datasource_type = dt.description
       )
     INNER JOIN
       public.datasource AS p
@@ -115,18 +94,15 @@ store_datasource <- function(datasource, conn){
       p.datasource_type = dt.id
     WHERE
       t.description = p.description AND
-      t.datasource_type = d.datasource_type AND
-      t.connect_method = d.connect_method;
+      t.datasource_type = d.datasource_type;
     ",
     datasource.sql,
     datasource.sql,
-    datasource_type,
-    connect_method
+    datasource_type
   ) %>%
     dbGetQuery(conn = conn)
 
   datasource %>%
-    select_(~-connect_method) %>%
     gather_(
       key_col = "parameter",
       value_col = "value",
@@ -179,8 +155,7 @@ store_datasource <- function(datasource, conn){
     dbRemoveTable(conn, c("staging", paste0("datasource_", hash))),
     dbRemoveTable(conn, c("staging", paste0("datasource_value_", hash))),
     dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("connect_method_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
   )
   return(hash)
 }
