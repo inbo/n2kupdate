@@ -7,6 +7,19 @@ ut.datasource <- data.frame(
   dbname = "n2kresult",
   stringsAsFactors = FALSE
 )
+ut.datasource2 <- data.frame(
+  description = c("Unit test datasource 1", "Unit test datasource 2"),
+  datasource_type = "PostgreSQL",
+  connect_method = c(
+    "SSH key",
+    "Credentials stored in database"
+  ),
+  server = c("localhost", "AWS"),
+  dbname = c("n2kresult_dev", "n2kresult"),
+  username = c(NA, "unittest"),
+  password = c(NA, "unittest"),
+  stringsAsFactors = FALSE
+)
 ut <- sprintf("unit test %i", 1:2)
 test_that("input is suitable", {
   expect_error(
@@ -199,6 +212,106 @@ test_that("subfunction work correctly", {
         ORDER BY
           description;"
       )$description
+    )
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("it stores updates data correctly", {
+  conn <- connect_db()
+  expect_is(
+    hash <- store_datasource(datasource = ut.datasource2, conn = conn),
+    "character"
+  )
+
+  ut.datasource2 %>%
+    select_(description = ~datasource_type) %>%
+    distinct_() %>%
+    dplyr::anti_join(
+      dbGetQuery(conn, "SELECT description FROM public.datasource_type"),
+      by = "description"
+    ) %>%
+    nrow() %>%
+    expect_identical(0L)
+  datasource_parameters <- ut.datasource2 %>%
+    select_(~-description, ~-datasource_type) %>%
+    colnames() %>%
+    sort()
+  data_frame(description = datasource_parameters) %>%
+    dplyr::anti_join(
+      dbGetQuery(
+        conn,
+        "SELECT
+          description
+        FROM
+          public.datasource_parameter
+        ORDER BY
+          description"
+      ),
+      by = "description"
+    ) %>%
+    nrow() %>%
+    expect_identical(0L)
+
+  ut.datasource2 %>%
+    select_(~description, ~datasource_type) %>%
+    arrange_(~datasource_type, ~description) %>%
+    expect_identical(
+      dbGetQuery(
+        conn, "
+        SELECT
+          d.description,
+          dt.description AS datasource_type
+        FROM
+          public.datasource AS d
+        INNER JOIN
+          public.datasource_type AS dt
+        ON
+          d.datasource_type = dt.id
+        ORDER BY
+          d.description,
+          dt.description;
+      ")
+    )
+  ut.datasource2 %>%
+    gather_(
+      key_col = "parameter",
+      value_col = "value",
+      gather_cols = datasource_parameters,
+      na.rm = TRUE
+    ) %>%
+    arrange_(~description, ~datasource_type, ~parameter) %>%
+    expect_identical(
+      dbGetQuery(
+        conn, "
+        SELECT
+          d.description,
+          dt.description AS datasource_type,
+          dp.description AS parameter,
+          dv.value
+        FROM
+          (
+            public.datasource_value AS dv
+          INNER JOIN
+            public.datasource_parameter AS dp
+          ON
+            dv.parameter = dp.id
+          )
+        INNER JOIN
+          (
+            public.datasource AS d
+          INNER JOIN
+            public.datasource_type AS dt
+          ON
+            d.datasource_type = dt.id
+          )
+        ON
+          dv.datasource = d.id
+        WHERE
+          dv.destroy IS NULL
+        ORDER BY
+          d.description, dt.description, dp.description"
+      )
     )
 
   DBI::dbDisconnect(conn)

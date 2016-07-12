@@ -117,6 +117,68 @@ store_datasource <- function(datasource, conn){
   datasource_value <- paste0("datasource_value_", hash) %>%
     dbQuoteIdentifier(conn = conn)
   sprintf("
+    SELECT
+      *
+    FROM
+      public.datasource_value
+    WHERE
+      public.datasource_value.destroy IS NULL
+    ") %>%
+    dbGetQuery(conn = conn)
+
+  # destroy values which are no longer used
+  sprintf("
+    UPDATE
+      public.datasource_value AS target
+    SET
+      destroy = current_timestamp
+    FROM
+      public.datasource_value AS dvp
+    LEFT JOIN
+      (
+        (
+          staging.%s AS dv
+        INNER JOIN
+          staging.%s AS d
+        ON
+          dv.description = d.description AND
+          dv.datasource_type = d.datasource_type
+        )
+      INNER JOIN
+        staging.%s AS dp
+      ON
+        dv.parameter = dp.description
+      )
+    ON
+      dvp.datasource = d.id AND
+      dvp.parameter = dp.id AND
+      dvp.value = dv.value
+    WHERE
+      dvp.destroy IS NULL AND
+      dv.value IS NULL AND
+      dvp.datasource = target.datasource AND
+      dvp.parameter = target.parameter AND
+      dvp.value = target.value AND
+      dvp.spawn = target.spawn
+    ",
+    datasource_value,
+    datasource.sql,
+    datasource_parameter
+  ) %>%
+    dbGetQuery(conn = conn)
+  # insert new values
+  sprintf("
+    WITH latest AS
+      (
+        SELECT
+          datasource,
+          parameter,
+          max(spawn) AS ts
+        FROM
+          public.datasource_value
+        GROUP BY
+          datasource, parameter
+      )
     INSERT INTO public.datasource_value
       (datasource, parameter, value)
     SELECT
@@ -139,12 +201,21 @@ store_datasource <- function(datasource, conn){
         dv.parameter = dp.description
       )
     LEFT JOIN
-      public.datasource_value AS p
+      (
+        latest
+      INNER JOIN
+        public.datasource_value AS dvp
+      ON
+        latest.datasource = dvp.datasource AND
+        latest.parameter = dvp.parameter AND
+        latest.ts = dvp.spawn
+      )
     ON
-      p.datasource = d.id AND
-      p.parameter = dp.id
+      dvp.datasource = d.id AND
+      dvp.parameter = dp.id
     WHERE
-      p.datasource IS NULL;",
+      dvp.spawn IS NULL OR
+      dvp.destroy IS NOT NULL;",
     datasource_value,
     datasource.sql,
     datasource_parameter
