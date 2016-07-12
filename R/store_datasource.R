@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_
+#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
@@ -15,6 +15,12 @@ store_datasource <- function(datasource, conn){
   assert_that(has_name(datasource, "description"))
   assert_that(has_name(datasource, "datasource_type"))
   assert_that(has_name(datasource, "connect_method"))
+
+  factors <- sapply(datasource, is.factor)
+  if (any(factors)) {
+    datasource <- datasource %>%
+      mutate_each_(funs(as.character), vars = names(factors)[factors])
+  }
 
   hash <- sha1(list(datasource, Sys.time()))
   datasource_type <- store_datasource_type(

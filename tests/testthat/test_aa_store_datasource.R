@@ -18,7 +18,7 @@ ut.datasource2 <- data.frame(
   dbname = c("n2kresult_dev", "n2kresult"),
   username = c(NA, "unittest"),
   password = c(NA, "unittest"),
-  stringsAsFactors = FALSE
+  stringsAsFactors = TRUE
 )
 ut <- sprintf("unit test %i", 1:2)
 test_that("input is suitable", {
@@ -225,7 +225,7 @@ test_that("it stores updates data correctly", {
   )
 
   ut.datasource2 %>%
-    select_(description = ~datasource_type) %>%
+    transmute_(description = ~as.character(datasource_type)) %>%
     distinct_() %>%
     dplyr::anti_join(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type"),
@@ -254,7 +254,10 @@ test_that("it stores updates data correctly", {
     expect_identical(0L)
 
   ut.datasource2 %>%
-    select_(~description, ~datasource_type) %>%
+    transmute_(
+      description = ~as.character(description),
+      datasource_type = ~as.character(datasource_type)
+    ) %>%
     arrange_(~datasource_type, ~description) %>%
     expect_identical(
       dbGetQuery(
@@ -274,6 +277,7 @@ test_that("it stores updates data correctly", {
       ")
     )
   ut.datasource2 %>%
+    mutate_each_(funs(as.character), vars = colnames(ut.datasource2)) %>%
     gather_(
       key_col = "parameter",
       value_col = "value",
