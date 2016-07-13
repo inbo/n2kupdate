@@ -2,16 +2,17 @@
 #' @param datafield a data.frame with datafield metadata
 #' @inheritParams store_datasource_parameter
 #' @export
-#' @importFrom assertthat assert_that has_name noNA
+#' @importFrom assertthat assert_that has_name noNA are_equal
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
-#' @details datafield must contain the variables datasource, table_name, primary_key and datafield_type. Other variables are ignored.
+#' @details datafield must contain the variables hash, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
 store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(inherits(datafield, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
 
+  assert_that(has_name(datafield, "hash"))
   assert_that(has_name(datafield, "datasource"))
   assert_that(has_name(datafield, "table_name"))
   assert_that(has_name(datafield, "primary_key"))
@@ -21,13 +22,15 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
 
   assert_that(is.integerish(datafield$datasource))
 
+  assert_that(are_equal(anyDuplicated(datafield$hash), 0L))
+
   if (missing(hash)) {
     hash <- sha1(list(datafield, Sys.time()))
   } else {
     assert_that(is.string(hash))
   }
 
-    factors <- sapply(datafield, is.factor)
+  factors <- sapply(datafield, is.factor)
   if (any(factors)) {
     datafield <- datafield %>%
       mutate_each_(funs(as.character), vars = names(factors)[factors])
@@ -43,6 +46,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   datafield %>%
     transmute_(
       id = NA_integer_,
+      ~hash,
       ~datasource,
       ~table_name,
       ~primary_key,
@@ -108,9 +112,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
       p.primary_key = d.primary_key AND
       p.datafield_type = dt.id
     WHERE
-      p.datasource = t.datasource AND
-      p.table_name = t.table_name AND
-      p.primary_key = t.primary_key;
+      d.hash = t.hash;
     ",
     datafield.sql,
     datafield.sql,

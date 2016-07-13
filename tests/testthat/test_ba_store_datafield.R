@@ -2,6 +2,7 @@ context("store_datafield")
 ut <- sprintf("unit test %i", 1:2)
 conn <- connect_db()
 ut.datafield <- data.frame(
+  hash = ut,
   datasource = DBI::dbReadTable(conn, "datasource")$id,
   table_name = ut,
   primary_key = ut,
@@ -66,6 +67,7 @@ test_that("it stores new data correctly", {
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
   ut.datafield %>%
+    select_(~-hash) %>%
     arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
     expect_identical(
       dbGetQuery(
@@ -110,12 +112,6 @@ test_that("it ignores existing data", {
   c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
-  c("staging", paste0("datafield_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_true()
-  c("staging", paste0("datafield_", hash)) %>%
-    DBI::dbRemoveTable(conn = conn) %>%
-    expect_true()
 
   ut.datafield %>%
     select_(description = ~datafield_type) %>%
@@ -123,12 +119,14 @@ test_that("it ignores existing data", {
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
+
   factors <- sapply(ut.datafield, is.factor)
   if (any(factors)) {
     ut.datafield <- ut.datafield %>%
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
   ut.datafield %>%
+    select_(~-hash) %>%
     arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
     expect_identical(
       dbGetQuery(
@@ -152,7 +150,38 @@ test_that("it ignores existing data", {
       ")
     )
 
-  DBI::dbDisconnect(conn)
+  results <- sprintf("
+    SELECT
+      p.id AS public_id,
+      s.id AS staging_id
+    FROM
+      (
+        public.datafield AS p
+      INNER JOIN
+        public.datafield_type AS dt
+      ON
+        p.datafield_type = dt.id
+      )
+    INNER JOIN
+      staging.datafield_%s AS s
+    ON
+      p.datasource = s.datasource AND
+      p.table_name = s.table_name AND
+      p.primary_key = s.primary_key AND
+      dt.description = s.datafield_type;",
+    hash
+  ) %>%
+    dbGetQuery(conn = conn)
+  expect_identical(results$public_id, results$staging_id)
+
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+
+    DBI::dbDisconnect(conn)
 })
 
 test_that("subfunction works correctly", {
