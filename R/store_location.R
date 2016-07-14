@@ -49,8 +49,8 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
     anyDuplicated()
   if (dup > 0) {
     stop(
-"Duplicate combinations of datafield_local_id, external_code and parent_local_id
-are found in location."
+"Duplicate combinations of datafield_local_id, external_code and
+parent_local_id are found in location."
     )
   }
 
@@ -164,6 +164,25 @@ are found in location."
     )
   location.sql <- paste0("location_", hash) %>%
     dbQuoteIdentifier(conn = conn)
+
+  # update description for existing rows
+  sprintf("
+    UPDATE
+      public.location AS t
+    SET
+      description = s.description
+    FROM
+      staging.%s AS s
+    INNER JOIN
+      public.location AS p
+    ON
+      s.fingerprint = p.fingerprint
+    WHERE
+      p.description != s.description AND
+      t.id = p.id;",
+    location.sql
+  ) %>%
+    dbGetQuery(conn = conn)
 
   repeat {
     # store locations
