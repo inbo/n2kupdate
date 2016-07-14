@@ -19,6 +19,6 @@ store_datafield(datafield, conn, hash, clean = TRUE)
 store a datafield in the database
 }
 \details{
-datafield must contain the variables hash, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
+datafield must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
 }
 

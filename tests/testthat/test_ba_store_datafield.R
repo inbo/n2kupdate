@@ -2,7 +2,7 @@ context("store_datafield")
 ut <- sprintf("unit test %i", 1:2)
 conn <- connect_db()
 ut.datafield <- data.frame(
-  hash = ut,
+  local_id = ut,
   datasource = DBI::dbReadTable(conn, "datasource")$id,
   table_name = ut,
   primary_key = ut,
@@ -21,6 +21,12 @@ test_that("input is suitable", {
     "conn does not inherit from class DBIConnection"
   )
   conn <- connect_db()
+  expect_error(
+    ut.datafield %>%
+      select_(~-local_id) %>%
+      store_datafield(conn),
+    "datafield does not have name local_id"
+  )
   expect_error(
     ut.datafield %>%
       select_(~-datasource) %>%
@@ -67,7 +73,7 @@ test_that("it stores new data correctly", {
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
   ut.datafield %>%
-    select_(~-hash) %>%
+    select_(~-local_id) %>%
     arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
     expect_identical(
       dbGetQuery(
@@ -126,7 +132,7 @@ test_that("it ignores existing data", {
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
   ut.datafield %>%
-    select_(~-hash) %>%
+    select_(~-local_id) %>%
     arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
     expect_identical(
       dbGetQuery(

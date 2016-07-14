@@ -2,17 +2,20 @@
 #' @param datafield a data.frame with datafield metadata
 #' @inheritParams store_datasource_parameter
 #' @export
-#' @importFrom assertthat assert_that has_name noNA are_equal
+#' @importFrom assertthat assert_that has_name noNA are_equal is.flag
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
-#' @importFrom DBI dbWriteTable dbRemoveTable
+#' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 #' @importFrom tidyr gather_
-#' @details datafield must contain the variables hash, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
+#' @details datafield must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
 store_datafield <- function(datafield, conn, hash, clean = TRUE){
-  assert_that(inherits(datafield, "data.frame"))
+  assert_that(is.flag(clean))
+  assert_that(noNA(clean))
+
+    assert_that(inherits(datafield, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
 
-  assert_that(has_name(datafield, "hash"))
+  assert_that(has_name(datafield, "local_id"))
   assert_that(has_name(datafield, "datasource"))
   assert_that(has_name(datafield, "table_name"))
   assert_that(has_name(datafield, "primary_key"))
@@ -22,7 +25,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
 
   assert_that(is.integerish(datafield$datasource))
 
-  assert_that(are_equal(anyDuplicated(datafield$hash), 0L))
+  assert_that(are_equal(anyDuplicated(datafield$local_id), 0L))
 
   if (missing(hash)) {
     hash <- sha1(list(datafield, Sys.time()))
@@ -46,7 +49,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   datafield %>%
     transmute_(
       id = NA_integer_,
-      ~hash,
+      ~local_id,
       ~datasource,
       ~table_name,
       ~primary_key,
@@ -112,7 +115,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
       p.primary_key = d.primary_key AND
       p.datafield_type = dt.id
     WHERE
-      d.hash = t.hash;
+      d.local_id = t.local_id;
     ",
     datafield.sql,
     datafield.sql,

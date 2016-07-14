@@ -4,7 +4,7 @@
 \alias{store_location}
 \title{store locations in the database}
 \usage{
-store_location(location, datafield, conn, hash, clean = FALSE)
+store_location(location, datafield, conn, hash, clean = TRUE)
 }
 \arguments{
 \item{location}{a data.frame with location metadata}
@@ -22,11 +22,11 @@ store locations in the database
 }
 \details{
 \itemize{
- \item location mush have variables hash, description, parent_hash, datafield_hash and extranal_code. Other variables are ignored
- \item datafield mush have variables hash, datasource, table_name, primary_key and datafield_type
- \item all hash variables must be unique within their data.frame
- \item all values in location$datafield_hash must exist in datafield$hash
- \item all values in location$parent_location must be either NA or exist in location$hash
+ \item location mush have variables local_id, description, parent_local_id, datafield_local_id and extranal_code. Other variables are ignored
+ \item datafield mush have variables local_id, datasource, table_name, primary_key and datafield_type
+ \item all local_id variables must be unique within their data.frame
+ \item all values in location$datafield_local_id must exist in datafield$local_id
+ \item all values in location$parent_location must be either NA or exist in location$local_id
 }
 }
 
