@@ -167,13 +167,13 @@ test_that("it updates the description of existing locations", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
 
-  assert_that(
+  expect_true(
     dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
   )
-  assert_that(
+  expect_true(
     dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
   )
-  assert_that(
+  expect_true(
     dbRemoveTable(conn, c("staging", paste0("location_", hash)))
   )
 
