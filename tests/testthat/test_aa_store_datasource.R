@@ -158,7 +158,7 @@ test_that("it stores new data correctly", {
   DBI::dbDisconnect(conn)
 })
 
-test_that("subfunction work correctly", {
+test_that("subfunctions work correctly", {
   conn <- connect_db()
 
   # datasource_type

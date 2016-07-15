@@ -62,4 +62,3 @@ test_that("it stores new data correctly", {
 
   DBI::dbDisconnect(conn)
 })
-

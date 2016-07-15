@@ -12,7 +12,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-    assert_that(inherits(datafield, "data.frame"))
+  assert_that(inherits(datafield, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(datafield, "local_id"))
