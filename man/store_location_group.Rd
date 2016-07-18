@@ -7,7 +7,7 @@
 store_location_group(location_group, hash, conn, clean = TRUE)
 }
 \arguments{
-\item{location_group}{the data.frame with location groups. Must contains local_id, description and scheme. Other variables are ignored.}
+\item{location_group}{the data.frame with location groups. Must contains local_id, description and scheme. Other variables are ignored. local_id must have unique values.}
 
 \item{hash}{the hash of the update session}
 

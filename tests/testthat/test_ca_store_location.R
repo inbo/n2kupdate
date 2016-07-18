@@ -81,13 +81,14 @@ test_that("it store new data correctly", {
   conn <- connect_db()
 
   expect_is(
-    hash <- store_location(
+    stored.location <- store_location(
       location = ut.location,
       datafield = ut.datafield,
       conn = conn
     ),
-    "character"
+    "data.frame"
   )
+  hash <- attr(stored.location, which = "hash", exact = TRUE)
   c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
@@ -148,15 +149,16 @@ test_that("it updates the description of existing locations", {
   conn <- connect_db()
 
   expect_is(
-    hash <- store_location(
+    stored.location <- store_location(
       location = ut.location2,
       datafield = ut.datafield,
       conn = conn,
       hash = "junk",
       clean = FALSE
     ),
-    "character"
+    "data.frame"
   )
+  hash <- attr(stored.location, which = "hash", exact = TRUE)
   c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()

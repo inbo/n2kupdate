@@ -279,5 +279,6 @@ parent_local_id are found in location."
     )
   }
 
-  return(hash)
+  attr(location, "hash") <- hash
+  return(location)
 }

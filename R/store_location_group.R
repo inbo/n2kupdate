@@ -1,5 +1,5 @@
 #' Store location groups
-#' @param location_group the data.frame with location groups. Must contains local_id, description and scheme. Other variables are ignored.
+#' @param location_group the data.frame with location groups. Must contains local_id, description and scheme. Other variables are ignored. local_id must have unique values.
 #' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
@@ -21,6 +21,8 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  assert_that(are_equal(anyDuplicated(location_group$local_id), 0L))
+
   factors <- sapply(location_group, is.factor)
   if (any(factors)) {
     location_group <- location_group %>%
@@ -30,6 +32,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
   location_group %>%
     transmute_(
       id = ~NA_integer_,
+      ~local_id,
       ~description,
       ~scheme
     ) %>%
