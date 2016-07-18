@@ -5,7 +5,8 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>%
+#' @importFrom dplyr data_frame %>% rowwise mutate_ select_
+#' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
   assert_that(is(datasource_type, "character"))
@@ -19,10 +20,13 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  data_frame(
+  dst <- data_frame(
     description = sort(unique(datasource_type)),
     id = NA_integer_
   ) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(description = description)))
+  dst %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -33,15 +37,16 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.datasource_type
-      (description)
+      (fingerprint, description)
     SELECT
+      s.fingerprint,
       s.description
     FROM
       staging.%s AS s
     LEFT JOIN
       public.datasource_type AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
       p.id IS NULL",
     datasource_type
@@ -57,9 +62,9 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
     INNER JOIN
       public.datasource_type AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
-      t.description = s.description",
+      t.fingerprint = s.fingerprint",
     datasource_type,
     datasource_type
   ) %>%
@@ -67,5 +72,9 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
   }
-  return(datasource_type)
+
+  dst <- dst %>%
+    select_(~-id)
+  attr(dst, "sql") <- datasource_type
+  return(dst)
 }

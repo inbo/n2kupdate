@@ -7,7 +7,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>%
+#' @importFrom dplyr data_frame %>% rowwise select_ mutate_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_datasource_parameter <- function(
   datasource_parameter,
@@ -26,10 +26,13 @@ store_datasource_parameter <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  data_frame(
+  dsp <- data_frame(
     description = sort(unique(datasource_parameter)),
     id = NA_integer_
   ) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(description = description)))
+  dsp %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -40,15 +43,16 @@ store_datasource_parameter <- function(
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.datasource_parameter
-      (description)
+      (fingerprint, description)
     SELECT
+      s.fingerprint,
       s.description
     FROM
       staging.%s AS s
     LEFT JOIN
       public.datasource_parameter AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
       p.id IS NULL",
     datasource_parameter
@@ -64,9 +68,9 @@ store_datasource_parameter <- function(
     INNER JOIN
       public.datasource_parameter AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
-      t.description = s.description",
+      t.fingerprint = s.fingerprint",
     datasource_parameter,
     datasource_parameter
   ) %>%
@@ -74,5 +78,9 @@ store_datasource_parameter <- function(
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash)))
   }
-  return(datasource_parameter)
+
+  dsp <- dsp %>%
+    select_(~-id)
+  attr(dsp, "sql") <- datasource_parameter
+  return(dsp)
 }

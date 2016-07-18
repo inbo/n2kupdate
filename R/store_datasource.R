@@ -33,19 +33,31 @@ store_datasource <- function(datasource, conn){
     select_(~-description, ~-datasource_type) %>%
     colnames()
   datasource_parameter <- store_datasource_parameter(
-    datasource_parameters,
+    datasource_parameter = datasource_parameters,
     hash = hash,
     conn = conn,
     clean = FALSE
   )
 
-  datasource %>%
+  ds <- datasource %>%
     transmute_(
       id = NA_integer_,
       ~description,
-      ~datasource_type
+      dst = ~datasource_type
     ) %>%
-    arrange_(~datasource_type, ~description) %>%
+    inner_join(
+      datasource_type %>%
+        rename_(datasource_type = ~fingerprint),
+      by = c("dst" = "description")
+    ) %>%
+    select_(~-dst) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(
+      description = description,
+      datasource_type = datasource_type
+    ))) %>%
+    arrange_(~datasource_type, ~description)
+  ds %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -56,8 +68,9 @@ store_datasource <- function(datasource, conn){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.datasource
-      (description, datasource_type)
+      (fingerprint, description, datasource_type)
     SELECT
+      d.fingerprint,
       d.description,
       dt.id AS datasource_type
     FROM
@@ -66,18 +79,17 @@ store_datasource <- function(datasource, conn){
       INNER JOIN
         staging.%s AS dt
       ON
-        d.datasource_type = dt.description
+        d.datasource_type = dt.fingerprint
       )
     LEFT JOIN
       public.datasource AS p
     ON
-      p.description = d.description AND
-      p.datasource_type = dt.id
+      p.fingerprint = d.fingerprint
     WHERE
       p.id IS NULL;
     ",
     datasource.sql,
-    datasource_type
+    attr(datasource_type, "sql")
   ) %>%
     dbGetQuery(conn = conn)
   sprintf("
@@ -86,35 +98,39 @@ store_datasource <- function(datasource, conn){
     SET
       id = p.id
     FROM
-      (
-        staging.%s AS d
-      INNER JOIN
-        staging.%s AS dt
-      ON
-        d.datasource_type = dt.description
-      )
+      staging.%s AS d
     INNER JOIN
       public.datasource AS p
     ON
-      p.description = d.description AND
-      p.datasource_type = dt.id
+      p.fingerprint = d.fingerprint
     WHERE
-      t.description = p.description AND
-      t.datasource_type = d.datasource_type;
+      t.fingerprint = d.fingerprint;
     ",
     datasource.sql,
-    datasource.sql,
-    datasource_type
+    datasource.sql
   ) %>%
     dbGetQuery(conn = conn)
 
   datasource %>%
+    rename_(dst = ~datasource_type) %>%
+    inner_join(
+      datasource_type %>%
+        rename_(datasource_type = ~fingerprint),
+      by = c("dst" = "description")
+    ) %>%
+    select_(~-dst) %>%
     gather_(
-      key_col = "parameter",
+      key_col = "dpd",
       value_col = "value",
       gather_cols = datasource_parameters,
       na.rm = TRUE
     ) %>%
+    inner_join(
+      datasource_parameter %>%
+        rename_(dpd = ~description, parameter = ~fingerprint),
+      by = "dpd"
+    ) %>%
+    select_(~-dpd) %>%
     dbWriteTable(
       conn = conn,
       name = c("staging", paste0("datasource_value_", hash)),
@@ -122,15 +138,6 @@ store_datasource <- function(datasource, conn){
     )
   datasource_value <- paste0("datasource_value_", hash) %>%
     dbQuoteIdentifier(conn = conn)
-  sprintf("
-    SELECT
-      *
-    FROM
-      public.datasource_value
-    WHERE
-      public.datasource_value.destroy IS NULL
-    ") %>%
-    dbGetQuery(conn = conn)
 
   # destroy values which are no longer used
   sprintf("
@@ -153,7 +160,7 @@ store_datasource <- function(datasource, conn){
       INNER JOIN
         staging.%s AS dp
       ON
-        dv.parameter = dp.description
+        dv.parameter = dp.fingerprint
       )
     ON
       dvp.datasource = d.id AND
@@ -169,7 +176,7 @@ store_datasource <- function(datasource, conn){
     ",
     datasource_value,
     datasource.sql,
-    datasource_parameter
+    attr(datasource_parameter, "sql")
   ) %>%
     dbGetQuery(conn = conn)
   # insert new values
@@ -204,7 +211,7 @@ store_datasource <- function(datasource, conn){
       INNER JOIN
         staging.%s AS dp
       ON
-        dv.parameter = dp.description
+        dv.parameter = dp.fingerprint
       )
     LEFT JOIN
       (
@@ -224,7 +231,7 @@ store_datasource <- function(datasource, conn){
       dvp.destroy IS NOT NULL;",
     datasource_value,
     datasource.sql,
-    datasource_parameter
+    attr(datasource_parameter, "sql")
   ) %>%
     dbGetQuery(conn = conn)
 

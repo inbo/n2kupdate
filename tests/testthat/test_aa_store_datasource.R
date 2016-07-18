@@ -164,9 +164,9 @@ test_that("subfunctions work correctly", {
   # datasource_type
   expect_is(
     datasource_type <- store_datasource_type(datasource_type = ut, conn = conn),
-    "SQL"
+    "data.frame"
   )
-  datasource_type@.Data %>%
+  attr(datasource_type, "sql")@.Data %>%
     gsub(pattern = "\\\"", replacement = "") %>%
     c("staging") %>%
     rev() %>%
@@ -188,9 +188,9 @@ test_that("subfunctions work correctly", {
       datasource_parameter = ut,
       conn = conn
     ),
-    "SQL"
+    "data.frame"
   )
-  datasource_parameter@.Data %>%
+  attr(datasource_parameter, "sql")@.Data %>%
     gsub(pattern = "\\\"", replacement = "") %>%
     c("staging") %>%
     rev() %>%
