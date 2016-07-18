@@ -5,7 +5,8 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>%
+#' @importFrom dplyr data_frame %>% rowwise mutate_
+#' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_scheme <- function(scheme, hash, conn, clean = TRUE){
   assert_that(is.character(scheme))
@@ -19,10 +20,13 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  data_frame(
+  ds <- data_frame(
     description = sort(unique(scheme)),
     id = NA_integer_
   ) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(description = description)))
+  ds %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -33,8 +37,9 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.scheme
-      (description)
+      (fingerprint, description)
     SELECT
+      s.fingerprint,
       s.description
     FROM
       staging.%s AS s
@@ -57,9 +62,9 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
     INNER JOIN
       public.scheme AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
-      t.description = s.description",
+      t.fingerprint = s.fingerprint",
     scheme,
     scheme
   ) %>%
@@ -67,5 +72,9 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("scheme_", hash)))
   }
-  return(scheme)
+
+  ds <- ds %>%
+    select_(~-id)
+  attr(ds, "SQL") <- scheme
+  return(ds)
 }

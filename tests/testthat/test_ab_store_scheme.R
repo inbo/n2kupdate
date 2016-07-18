@@ -21,9 +21,11 @@ test_that("it stores new data correctly", {
   conn <- connect_db()
   expect_is(
     hash <- store_scheme(scheme = ut, conn = conn),
-    "character"
+    "data.frame"
   )
-  c("staging", paste0("scheme_", hash)) %>%
+  attr(hash, "sql")@.Data %>%
+    gsub(pattern = "\\\"", replacement = "") %>%
+    c("staging") %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
 
@@ -42,7 +44,7 @@ test_that("it stores new data correctly", {
       hash = "junk",
       clean = FALSE
     ),
-    "character"
+    "data.frame"
   )
   c("staging", "scheme_junk") %>%
     DBI::dbExistsTable(conn = conn) %>%
