@@ -3,7 +3,7 @@ ut <- sprintf("unit test %i", 1:2)
 conn <- connect_db()
 ut.datafield <- data.frame(
   local_id = ut,
-  datasource = DBI::dbReadTable(conn, "datasource")$id,
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
   table_name = ut,
   primary_key = ut,
   datafield_type = "character",
@@ -58,12 +58,16 @@ test_that("it stores new data correctly", {
   conn <- connect_db()
   expect_is(
     hash <- store_datafield(datafield = ut.datafield, conn = conn),
-    "character"
+    "data.frame"
   )
-  c("staging", paste0("datafield_type_", hash)) %>%
+  paste0("datafield_type_", attr(hash, "hash")) %>%
+    c("staging") %>%
+    rev() %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
-  c("staging", paste0("datafield_", hash)) %>%
+  paste0("datafield_", attr(hash, "hash")) %>%
+    c("staging") %>%
+    rev() %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datafield %>%
@@ -79,18 +83,24 @@ test_that("it stores new data correctly", {
       dbGetQuery(
         conn, "
         SELECT
-          d.datasource,
+          ds.fingerprint AS datasource,
           d.table_name,
           d.primary_key,
           dt.description AS datafield_type
         FROM
-          public.datafield AS d
+          (
+            public.datafield AS d
+          INNER JOIN
+            public.datasource AS ds
+          ON
+            d.datasource = ds.id
+          )
         INNER JOIN
           public.datafield_type AS dt
         ON
           d.datafield_type = dt.id
         ORDER BY
-          d.datasource,
+          ds.fingerprint,
           d.table_name,
           d.primary_key,
           dt.description;
@@ -110,12 +120,12 @@ test_that("it ignores existing data", {
       hash = "junk",
       clean = FALSE
     ),
-    "character"
+    "data.frame"
   )
-  c("staging", paste0("datafield_type_", hash)) %>%
+  c("staging", "datafield_type_junk") %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
-  c("staging", paste0("datafield_type_", hash)) %>%
+  c("staging", "datafield_type_junk") %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
 
@@ -138,18 +148,24 @@ test_that("it ignores existing data", {
       dbGetQuery(
         conn, "
         SELECT
-          d.datasource,
+          ds.fingerprint AS datasource,
           d.table_name,
           d.primary_key,
           dt.description AS datafield_type
         FROM
-          public.datafield AS d
+          (
+            public.datafield AS d
+          INNER JOIN
+            public.datasource AS ds
+          ON
+            d.datasource = ds.id
+          )
         INNER JOIN
           public.datafield_type AS dt
         ON
           d.datafield_type = dt.id
         ORDER BY
-          d.datasource,
+          ds.fingerprint,
           d.table_name,
           d.primary_key,
           dt.description;
@@ -171,19 +187,16 @@ test_that("it ignores existing data", {
     INNER JOIN
       staging.datafield_%s AS s
     ON
-      p.datasource = s.datasource AND
-      p.table_name = s.table_name AND
-      p.primary_key = s.primary_key AND
-      dt.description = s.datafield_type;",
-    hash
+      p.fingerprint = s.fingerprint;",
+    attr(hash, "hash")
   ) %>%
     dbGetQuery(conn = conn)
   expect_identical(results$public_id, results$staging_id)
 
-  c("staging", paste0("datafield_", hash)) %>%
+  c("staging", paste0("datafield_", attr(hash, "hash"))) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
-  c("staging", paste0("datafield_", hash)) %>%
+  c("staging", paste0("datafield_", attr(hash, "hash"))) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
 
@@ -196,9 +209,9 @@ test_that("subfunction works correctly", {
   # datafield_type
   expect_is(
     datafield_type <- store_datafield_type(datafield_type = ut, conn = conn),
-    "SQL"
+    "data.frame"
   )
-  datafield_type@.Data %>%
+  attr(datafield_type, "SQL")@.Data %>%
     gsub(pattern = "\\\"", replacement = "") %>%
     c("staging") %>%
     rev() %>%

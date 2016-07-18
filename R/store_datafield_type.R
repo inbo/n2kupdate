@@ -5,7 +5,8 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>%
+#' @importFrom dplyr data_frame %>% rowwise mutate_ select_
+#' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
   assert_that(is(datafield_type, "character"))
@@ -19,10 +20,13 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  data_frame(
+  dft <- data_frame(
     description = sort(unique(datafield_type)),
     id = NA_integer_
   ) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(description = description)))
+  dft %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -33,15 +37,16 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.datafield_type
-      (description)
+      (fingerprint, description)
     SELECT
+      s.fingerprint,
       s.description
     FROM
       staging.%s AS s
     LEFT JOIN
       public.datafield_type AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
       p.id IS NULL",
     datafield_type
@@ -57,9 +62,9 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
     INNER JOIN
       public.datafield_type AS p
     ON
-      s.description = p.description
+      s.fingerprint = p.fingerprint
     WHERE
-      t.description = s.description",
+      t.fingerprint = s.fingerprint",
     datafield_type,
     datafield_type
   ) %>%
@@ -67,5 +72,9 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
   }
-  return(datafield_type)
+
+  dft <- dft %>%
+    select_(~-id)
+  attr(dft, "SQL") <- datafield_type
+  return(dft)
 }

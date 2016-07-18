@@ -23,8 +23,6 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
 
   assert_that(noNA(datafield))
 
-  assert_that(is.integerish(datafield$datasource))
-
   assert_that(are_equal(anyDuplicated(datafield$local_id), 0L))
 
   if (missing(hash)) {
@@ -46,16 +44,30 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
     clean = FALSE
   )
 
-  datafield %>%
+  df <- datafield %>%
     transmute_(
       id = NA_integer_,
       ~local_id,
       ~datasource,
       ~table_name,
       ~primary_key,
-      ~datafield_type
+      dft = ~datafield_type
     ) %>%
-    arrange_(~datasource, ~table_name) %>%
+    inner_join(
+      datafield_type %>%
+        select_(dft = ~description, datafield_type = ~fingerprint),
+      by = "dft"
+    ) %>%
+    select_(~-dft) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(
+      datasource = datasource,
+      table_name = table_name,
+      primary_key = primary_key,
+      datafield_type = datafield_type
+    )))
+  df %>%
+    arrange_(~fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -66,32 +78,36 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.datafield
-      (datasource, table_name, primary_key, datafield_type)
+      (fingerprint, datasource, table_name, primary_key, datafield_type)
     SELECT
-      d.datasource,
+      d.fingerprint,
+      pd.id AS datasource,
       d.table_name,
       d.primary_key,
       dt.id AS datafield_type
     FROM
       (
-        staging.%s AS d
+        (
+          staging.%s AS d
+        INNER JOIN
+          staging.%s AS dt
+        ON
+          d.datafield_type = dt.fingerprint
+        )
       INNER JOIN
-        staging.%s AS dt
+        public.datasource AS pd
       ON
-        d.datafield_type = dt.description
+        d.datasource = pd.fingerprint
       )
     LEFT JOIN
       public.datafield AS p
     ON
-      p.datasource = d.datasource AND
-      p.table_name = d.table_name AND
-      p.primary_key = d.primary_key AND
-      p.datafield_type = dt.id
+      p.fingerprint = d.fingerprint
     WHERE
       p.id IS NULL;
     ",
     datafield.sql,
-    datafield_type
+    attr(datafield_type, "SQL")
   ) %>%
     dbGetQuery(conn = conn)
   sprintf("
@@ -100,26 +116,16 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
     SET
       id = p.id
     FROM
-      (
-        staging.%s AS d
-      INNER JOIN
-        staging.%s AS dt
-      ON
-        d.datafield_type = dt.description
-      )
+      staging.%s AS d
     INNER JOIN
       public.datafield AS p
     ON
-      p.datasource = d.datasource AND
-      p.table_name = d.table_name AND
-      p.primary_key = d.primary_key AND
-      p.datafield_type = dt.id
+      p.fingerprint = d.fingerprint
     WHERE
-      d.local_id = t.local_id;
+      d.fingerprint = t.fingerprint;
     ",
     datafield.sql,
-    datafield.sql,
-    datafield_type
+    datafield.sql
   ) %>%
     dbGetQuery(conn = conn)
 
@@ -129,5 +135,9 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
       dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
     )
   }
-  return(hash)
+
+  df <- df %>%
+    select_(~-id)
+  attr(df, "hash") <- hash
+  return(df)
 }
