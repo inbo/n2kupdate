@@ -3,7 +3,7 @@ conn <- connect_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.datafield <- data.frame(
   local_id = ut,
-  datasource = DBI::dbReadTable(conn, "datasource")$id,
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
   table_name = ut,
   primary_key = ut,
   datafield_type = "character",
@@ -77,7 +77,7 @@ parent_local_id are found in location."
   DBI::dbDisconnect(conn)
 })
 
-test_that("it store new data correctly", {
+test_that("it stores new data correctly", {
   conn <- connect_db()
 
   expect_is(
@@ -105,7 +105,7 @@ test_that("it store new data correctly", {
       l.parent_location,
       l.description,
       l.external_code,
-      df.datasource,
+      ds.fingerprint AS datasource,
       df.table_name,
       df.primary_key,
       dt.description AS datafield_type
@@ -113,7 +113,13 @@ test_that("it store new data correctly", {
       public.location AS l
     INNER JOIN
       (
-        public.datafield AS df
+        (
+          public.datafield AS df
+        INNER JOIN
+          public.datasource AS ds
+        ON
+          df.datasource = ds.id
+        )
       INNER JOIN
         public.datafield_type AS dt
       ON
@@ -185,7 +191,7 @@ test_that("it updates the description of existing locations", {
       l.parent_location,
       l.description,
       l.external_code,
-      df.datasource,
+      ds.fingerprint AS datasource,
       df.table_name,
       df.primary_key,
       dt.description AS datafield_type
@@ -193,7 +199,13 @@ test_that("it updates the description of existing locations", {
       public.location AS l
     INNER JOIN
       (
-        public.datafield AS df
+        (
+          public.datafield AS df
+        INNER JOIN
+          public.datasource AS ds
+        ON
+          df.datasource = ds.id
+        )
       INNER JOIN
         public.datafield_type AS dt
       ON

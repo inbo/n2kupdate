@@ -73,11 +73,7 @@ parent_local_id are found in location."
   location <- sprintf("
     SELECT
       df.local_id AS datafield_local_id,
-      d.description AS datasource,
-      dt.description AS datasource_type,
-      df.table_name,
-      df.primary_key,
-      df.datafield_type
+      df.fingerprint AS datafield
     FROM
       staging.%s AS df
     INNER JOIN
@@ -89,7 +85,7 @@ parent_local_id are found in location."
         d.datasource_type = dt.id
       )
     ON
-      df.datasource = d.id",
+      df.datasource = d.fingerprint",
     datafield.sql
   ) %>%
     dbGetQuery(conn = conn) %>%
@@ -99,11 +95,7 @@ parent_local_id are found in location."
       fingerprint = ~ifelse(
         is.na(parent_local_id),
         sha1(c(
-          datasource = datasource,
-          datasouce_type = datasource_type,
-          table_name = table_name,
-          primary_key = primary_key,
-          datafield_type = datafield_type,
+          datafield = datafield,
           external_code = external_code
         )),
         NA
@@ -126,11 +118,7 @@ parent_local_id are found in location."
           ifelse(
             !is.na(parent_fingerprint),
             sha1(c(
-              datasource = datasource,
-              datasouce_type = datasource_type,
-              table_name = table_name,
-              primary_key = primary_key,
-              datafield_type = datafield_type,
+              datafield = datafield,
               external_code = external_code
             )),
             NA
