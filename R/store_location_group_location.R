@@ -98,10 +98,10 @@ store_location_group_location <- function(
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
-      name = c("staging", paste0("location_group_location", hash)),
+      name = c("staging", paste0("lgl_", hash)),
       row.names = FALSE
     )
-  location_group_location.sql <- paste0("location_group_location", hash) %>%
+  location_group_location.sql <- paste0("lgl_", hash) %>%
     dbQuoteIdentifier(conn = conn)
 
   # destroy values which are no longer used
@@ -215,7 +215,7 @@ store_location_group_location <- function(
       ),
       dbRemoveTable(
         conn,
-        c("staging", paste0("location_group_location_", hash))
+        c("staging", paste0("lgl_", hash))
       )
     )
   }

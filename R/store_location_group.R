@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_ funs
+#' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_location_group <- function(location_group, hash, conn, clean = TRUE){
   assert_that(inherits(location_group, "data.frame"))
@@ -36,6 +36,8 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       ~description,
       ~scheme
     ) %>%
+    rowwise() %>%
+    mutate_(fingerprint = ~sha1(c(description = description))) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -46,17 +48,23 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.location_group
-      (description, scheme)
+      (fingerprint, description, scheme)
     SELECT
+      s.fingerprint,
       s.description,
-      s.scheme
+      ps.id AS scheme
     FROM
-      staging.%s AS s
+      (
+        staging.%s AS s
+      INNER JOIN
+        public.scheme AS ps
+      ON
+        s.scheme = ps.fingerprint
+      )
     LEFT JOIN
       public.location_group AS p
     ON
-      s.description = p.description AND
-      s.scheme = p.scheme
+      s.fingerprint = p.fingerprint
     WHERE
       p.id IS NULL",
     location_group
@@ -72,11 +80,9 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
     INNER JOIN
       public.location_group AS p
     ON
-      s.description = p.description AND
-      s.scheme = p.scheme
+      s.fingerprint = p.fingerprint
     WHERE
-      t.description = s.description AND
-      t.scheme = s.scheme",
+      t.fingerprint = s.fingerprint",
     location_group,
     location_group
   ) %>%
