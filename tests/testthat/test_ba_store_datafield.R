@@ -110,6 +110,12 @@ test_that("it stores new data correctly", {
   DBI::dbDisconnect(conn)
 })
 
+conn <- connect_db()
+c("staging", "datafield_junk") %>%
+  DBI::dbExistsTable(conn = conn) %>%
+  expect_false()
+DBI::dbDisconnect(conn)
+
 test_that("it ignores existing data", {
   conn <- connect_db()
   ut.datafield$table_name <- factor(ut.datafield$table_name)
@@ -122,12 +128,6 @@ test_that("it ignores existing data", {
     ),
     "data.frame"
   )
-  c("staging", "datafield_type_junk") %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_true()
-  c("staging", "datafield_type_junk") %>%
-    DBI::dbRemoveTable(conn = conn) %>%
-    expect_true()
 
   ut.datafield %>%
     select_(description = ~datafield_type) %>%
@@ -193,6 +193,12 @@ test_that("it ignores existing data", {
     dbGetQuery(conn = conn)
   expect_identical(results$public_id, results$staging_id)
 
+  c("staging", paste0("datafield_type_", attr(hash, "hash"))) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_type_", attr(hash, "hash"))) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
   c("staging", paste0("datafield_", attr(hash, "hash"))) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
@@ -202,6 +208,12 @@ test_that("it ignores existing data", {
 
     DBI::dbDisconnect(conn)
 })
+
+conn <- connect_db()
+c("staging", "datafield_junk") %>%
+  DBI::dbExistsTable(conn = conn) %>%
+  expect_false()
+DBI::dbDisconnect(conn)
 
 test_that("subfunction works correctly", {
   conn <- connect_db()
@@ -229,3 +241,9 @@ test_that("subfunction works correctly", {
 
   DBI::dbDisconnect(conn)
 })
+
+conn <- connect_db()
+c("staging", "datafield_junk") %>%
+  DBI::dbExistsTable(conn = conn) %>%
+  expect_false()
+DBI::dbDisconnect(conn)

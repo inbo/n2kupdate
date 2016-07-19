@@ -237,3 +237,9 @@ test_that("it updates the description of existing locations", {
 
   DBI::dbDisconnect(conn)
 })
+
+conn <- connect_db()
+c("staging", "datafield_junk") %>%
+  DBI::dbExistsTable(conn = conn) %>%
+  expect_false()
+DBI::dbDisconnect(conn)

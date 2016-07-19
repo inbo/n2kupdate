@@ -176,6 +176,9 @@ test_that("it stores the correct information", {
   c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
   c("staging", paste0("location_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
@@ -186,6 +189,9 @@ test_that("it stores the correct information", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
   c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_", hash)) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   c("staging", paste0("location_", hash)) %>%
