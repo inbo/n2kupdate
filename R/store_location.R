@@ -20,18 +20,6 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  if (missing(hash)) {
-    hash <- sha1(list(location, datafield, Sys.time()))
-  } else {
-    assert_that(is.string(hash))
-  }
-  store_datafield(
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
-  )
-
   assert_that(inherits(location, "data.frame"))
 
   assert_that(has_name(location, "local_id"))
@@ -66,6 +54,18 @@ parent_local_id are found in location."
       is.na(location$parent_local_id) |
       location$parent_local_id %in% location$local_id
     )
+  )
+
+  if (missing(hash)) {
+    hash <- sha1(list(location, datafield, Sys.time()))
+  } else {
+    assert_that(is.string(hash))
+  }
+  store_datafield(
+    datafield = datafield,
+    conn = conn,
+    hash = hash,
+    clean = FALSE
   )
 
   datafield.sql <- paste0("datafield_", hash) %>%

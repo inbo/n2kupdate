@@ -33,6 +33,31 @@ store_location_group_location <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  assert_that(inherits(location_group_location, "data.frame"))
+  assert_that(inherits(location_group, "data.frame"))
+
+  assert_that(has_name(location_group_location, "location_local_id"))
+  assert_that(has_name(location_group_location, "location_group_local_id"))
+
+  assert_that(noNA(location_group_location))
+
+  assert_that(are_equal(anyDuplicated(location_group_location), 0L))
+
+  factors <- sapply(location_group_location, is.factor)
+  if (any(factors)) {
+    location_group_location <- location_group_location %>%
+      mutate_each_(funs(as.character), vars = names(factors)[factors])
+  }
+  assert_that(
+    all(location_group_location$location_local_id %in% location$local_id)
+  )
+  assert_that(
+    all(
+      location_group_location$location_group_local_id %in%
+        location_group$local_id
+    )
+  )
+
   if (missing(hash)) {
     hash <- sha1(list(
       location_group_location,
@@ -58,30 +83,6 @@ store_location_group_location <- function(
     hash = hash,
     conn = conn,
     clean = FALSE
-  )
-
-  assert_that(inherits(location_group_location, "data.frame"))
-
-  assert_that(has_name(location_group_location, "location_local_id"))
-  assert_that(has_name(location_group_location, "location_group_local_id"))
-
-  assert_that(noNA(location_group_location))
-
-  assert_that(are_equal(anyDuplicated(location_group_location), 0L))
-
-  factors <- sapply(location_group_location, is.factor)
-  if (any(factors)) {
-    location_group_location <- location_group_location %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
-  assert_that(
-    all(location_group_location$location_local_id %in% location$local_id)
-  )
-  assert_that(
-    all(
-      location_group_location$location_group_local_id %in%
-        location_group$local_id
-    )
   )
 
   # write to staging table
