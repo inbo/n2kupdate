@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
+#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs rename_
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
