@@ -22,8 +22,8 @@ store locations in the database
 }
 \details{
 \itemize{
- \item location mush have variables local_id, description, parent_local_id, datafield_local_id and extranal_code. Other variables are ignored
- \item datafield mush have variables local_id, datasource, table_name, primary_key and datafield_type
+ \item location must have variables local_id, description, parent_local_id, datafield_local_id and extranal_code. Other variables are ignored
+ \item datafield must have variables local_id, datasource, table_name, primary_key and datafield_type
  \item all local_id variables must be unique within their data.frame
  \item all values in location$datafield_local_id must exist in datafield$local_id
  \item all values in location$parent_location must be either NA or exist in location$local_id

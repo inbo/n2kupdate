@@ -13,6 +13,33 @@ ut.species_group2 <- data.frame(
   scheme = DBI::dbReadTable(conn, "scheme")[1, "fingerprint"],
   stringsAsFactors = TRUE
 )
+ut.datafield <- data.frame(
+  local_id = ut,
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
+  table_name = ut,
+  primary_key = ut,
+  datafield_type = "character",
+  stringsAsFactors = FALSE
+)
+ut.source_species <- data.frame(
+  local_id = ut,
+  description = ut,
+  external_code = ut,
+  datafield_local_id = ut,
+  stringsAsFactors = FALSE
+)
+ut.source_species2 <- data.frame(
+  local_id = ut,
+  description = paste(ut, "update"),
+  external_code = ut,
+  datafield_local_id = ut
+)
+ut.source_species.dup <- data.frame(
+  local_id = ut,
+  description = ut,
+  external_code = ut[1],
+  datafield_local_id = ut[1]
+)
 DBI::dbDisconnect(conn)
 
 test_that("store_species_group works correctly", {
@@ -86,6 +113,154 @@ test_that("store_species_group works correctly", {
           s.fingerprint, sg.description;"
       )
     )
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("store_source_species works correctly", {
+  conn <- connect_db()
+
+  expect_error(
+    store_source_species(
+      source_species = ut.source_species.dup,
+      datafield = ut.datafield,
+      conn = conn
+    ),
+    "Duplicate combinations of datafield_local_id and external_code are found in
+source_species."
+  )
+
+  expect_is(
+    ss <- store_source_species(
+      source_species = ut.source_species,
+      datafield = ut.datafield,
+      conn = conn
+    ),
+    "data.frame"
+  )
+
+  hash <- attr(ss, which = "hash", exact = TRUE)
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  stored <- dbGetQuery(conn, "
+    SELECT
+      s.id,
+      s.description,
+      s.external_code,
+      ds.fingerprint AS datasource,
+      df.table_name,
+      df.primary_key,
+      dt.description AS datafield_type
+    FROM
+      public.source_species AS s
+    INNER JOIN
+      (
+        (
+          public.datafield AS df
+        INNER JOIN
+          public.datasource AS ds
+        ON
+          df.datasource = ds.id
+        )
+      INNER JOIN
+        public.datafield_type AS dt
+      ON
+        df.datafield_type = dt.id
+      )
+    ON
+      s.datafield = df.id
+  ") %>%
+    dplyr::full_join(
+      ut.source_species %>%
+        mutate_(description = ~as.character(description)) %>%
+        inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
+      by = c(
+        "description", "external_code", "datasource", "table_name",
+        "primary_key", "datafield_type"
+      )
+    )
+  expect_false(any(is.na(stored$local_id)))
+  expect_false(any(is.na(stored$id)))
+  expect_identical(nrow(stored), nrow(ut.source_species))
+
+  expect_is(
+    ss <- store_source_species(
+      source_species = ut.source_species2,
+      datafield = ut.datafield,
+      hash = "junk",
+      conn = conn,
+      clean = FALSE
+    ),
+    "data.frame"
+  )
+  hash <- attr(ss, which = "hash", exact = TRUE)
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+
+  expect_true(
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+  )
+  expect_true(
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+  )
+  expect_true(
+    dbRemoveTable(conn, c("staging", paste0("source_species_", hash)))
+  )
+
+  stored <- dbGetQuery(conn, "
+    SELECT
+      s.id,
+      s.description,
+      s.external_code,
+      ds.fingerprint AS datasource,
+      df.table_name,
+      df.primary_key,
+      dt.description AS datafield_type
+    FROM
+      public.source_species AS s
+    INNER JOIN
+      (
+        (
+          public.datafield AS df
+        INNER JOIN
+          public.datasource AS ds
+        ON
+          df.datasource = ds.id
+        )
+      INNER JOIN
+        public.datafield_type AS dt
+      ON
+        df.datafield_type = dt.id
+      )
+    ON
+      s.datafield = df.id
+  ") %>%
+    dplyr::full_join(
+      ut.source_species2 %>%
+        mutate_each_(funs(as.character), dplyr::everything()) %>%
+        inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
+      by = c(
+        "description", "external_code", "datasource", "table_name",
+        "primary_key", "datafield_type"
+      )
+    )
+  expect_false(any(is.na(stored$local_id)))
+  expect_false(any(is.na(stored$id)))
+  expect_identical(nrow(stored), nrow(ut.source_species))
 
   DBI::dbDisconnect(conn)
 })
