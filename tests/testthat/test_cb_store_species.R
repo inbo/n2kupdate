@@ -40,6 +40,16 @@ ut.source_species.dup <- data.frame(
   external_code = ut[1],
   datafield_local_id = ut[1]
 )
+ut.language <- data.frame(
+  code = c("du", "en"),
+  description = c("Dutch", "English"),
+  stringsAsFactors = FALSE
+)
+ut.language2 <- data.frame(
+  code = c("du", "en"),
+  description = c("Dutch", "English"),
+  stringsAsFactors = TRUE
+)
 DBI::dbDisconnect(conn)
 
 test_that("store_species_group works correctly", {
@@ -261,6 +271,73 @@ source_species."
   expect_false(any(is.na(stored$local_id)))
   expect_false(any(is.na(stored$id)))
   expect_identical(nrow(stored), nrow(ut.source_species))
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("store_language() works fine", {
+  conn <- connect_db()
+
+  expect_is(
+    lang <- store_language(
+      language = ut.language,
+      conn = conn
+    ),
+    "SQL"
+  )
+  lang@.Data %>%
+    gsub(pattern = "\\\"", replacement = "") %>%
+    c("staging") %>%
+    rev() %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  ut.language %>%
+    select_(~code, ~description) %>%
+    arrange_(~code, ~description) %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT
+          code,
+          description
+        FROM
+          public.language
+        ORDER BY
+          code, description;"
+      )
+    )
+
+  expect_is(
+    lang <- store_language(
+      language = ut.language2,
+      conn = conn,
+      clean = FALSE,
+      hash = "junk"
+    ),
+    "SQL"
+  )
+  c("staging", "language_junk") %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", "language_junk") %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  ut.language2 %>%
+    select_(~code, ~description) %>%
+    mutate_each_(funs(as.character), vars = c("code", "description")) %>%
+    arrange_(~code, ~description) %>%
+    expect_identical(
+      dbGetQuery(
+        conn,
+        "SELECT
+          code,
+          description
+        FROM
+          public.language
+        ORDER BY
+          code, description;"
+      )
+    )
 
   DBI::dbDisconnect(conn)
 })
