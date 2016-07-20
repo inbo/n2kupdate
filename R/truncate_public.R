@@ -10,10 +10,11 @@ truncate_public <- function(conn){
     "analysis_version_r_package", "anomaly", "anomaly_type",
     "contrast", "contrast_coefficient", "datafield", "datafield_type",
     "dataset", "datasource", "datasource_parameter", "datasource_type",
-    "datasource_value", "location", "location_group", "location_group_location",
-    "model_set", "model_type", "parameter", "parameter_estimate", "r_package",
-    "scheme", "source_species", "source_species_species", "species",
-    "species_group", "species_group_species", "status"
+    "datasource_value", "language", "location", "location_group",
+    "location_group_location", "model_set", "model_type", "parameter",
+    "parameter_estimate", "r_package", "scheme", "source_species",
+    "source_species_species", "species", "species_common_name", "species_group",
+    "species_group_species", "status"
   ) %>%
     dbQuoteIdentifier(conn = conn) %>%
     sprintf(fmt = "public.%s") %>%
