@@ -66,6 +66,18 @@ ut.species2 <- data.frame(
   en = ut,
   stringsAsFactors = TRUE
 )
+ut.species3 <- data.frame(
+  local_id = ut,
+  scientific_name = ut,
+  nbn_key = ut,
+  junk = ut,
+  stringsAsFactors = FALSE
+)
+ut.source_species_species <- data.frame(
+  species_local_id = ut,
+  source_species_local_id = ut,
+  stringsAsFactors = FALSE
+)
 DBI::dbDisconnect(conn)
 
 test_that("store_species_group works correctly", {
@@ -381,7 +393,6 @@ test_that("store_species() works fine", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
 
-
   stored <- dbGetQuery(conn, "
     SELECT
       s.id,
@@ -412,6 +423,82 @@ test_that("store_species() works fine", {
   expect_false(any(is.na(stored$local_id)))
   expect_false(any(is.na(stored$id)))
   expect_identical(nrow(stored), nrow(ut.species))
+
+  expect_is(
+    spec <- store_species(
+      species = ut.species2,
+      language = ut.language,
+      clean = FALSE,
+      hash = "junk",
+      conn = conn
+    ),
+    "data.frame"
+  )
+
+  expect_identical(
+    attr(spec, which = "hash", exact = TRUE),
+    "junk"
+  )
+  c("staging", "language_junk") %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", "species_common_name_junk") %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", "species_junk") %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+
+  c("staging", "language_junk") %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", "species_common_name_junk") %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", "species_junk") %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+
+  stored <- dbGetQuery(conn, "
+    SELECT
+      s.id,
+      s.scientific_name,
+      s.nbn_key,
+      l.code AS language,
+      scn.description AS common
+    FROM
+      species AS s
+    INNER JOIN
+      (
+        species_common_name AS scn
+      INNER JOIN
+        language AS l
+      ON
+        scn.language = l.id
+      )
+    ON
+      s.id = scn.species
+    WHERE
+      scn.destroy IS NULL
+  ") %>%
+    tidyr::spread_(key_col = "language", value_col = "common") %>%
+    dplyr::full_join(
+      ut.species2 %>%
+        mutate_each_(funs(as.character), vars = colnames(ut.species2)),
+      by = c("nbn_key", "scientific_name", "nl", "en")
+    )
+  expect_false(any(is.na(stored$local_id)))
+  expect_false(any(is.na(stored$id)))
+  expect_identical(nrow(stored), nrow(ut.species2))
+
+  expect_error(
+    store_species(
+      species = ut.species3,
+      language = ut.language,
+      conn = conn
+    ),
+    "'junk' is not available is language\\$code"
+  )
 
   DBI::dbDisconnect(conn)
 })

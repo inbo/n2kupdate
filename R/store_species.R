@@ -9,7 +9,7 @@
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 #' @details species must contain at least the variables scientific_name and nbn_key. Other variables must be listed in language$code.
-store_species <- function(species, language, conn){
+store_species <- function(species, language, conn, clean = TRUE){
   assert_that(inherits(species, "data.frame"))
   assert_that(inherits(language, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
@@ -212,11 +212,13 @@ store_species <- function(species, language, conn){
   ) %>%
     dbGetQuery(conn = conn)
 
-  stopifnot(
-    dbRemoveTable(conn, c("staging", paste0("language_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("species_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash)))
-  )
+  if (clean) {
+    stopifnot(
+      dbRemoveTable(conn, c("staging", paste0("language_", hash))),
+      dbRemoveTable(conn, c("staging", paste0("species_", hash))),
+      dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash)))
+    )
+  }
   sp %>%
     select_(~-id)
   attr(sp, "hash") <- hash
