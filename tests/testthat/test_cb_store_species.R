@@ -73,10 +73,20 @@ ut.species3 <- data.frame(
   junk = ut,
   stringsAsFactors = FALSE
 )
+ut.source_species_species_dup <- data.frame(
+  species_local_id = rep(ut, 2),
+  source_species_local_id = rep(ut, 2),
+  stringsAsFactors = FALSE
+)
 ut.source_species_species <- data.frame(
   species_local_id = ut,
   source_species_local_id = ut,
   stringsAsFactors = FALSE
+)
+ut.source_species_species2 <- data.frame(
+  species_local_id = rev(ut),
+  source_species_local_id = ut,
+  stringsAsFactors = TRUE
 )
 DBI::dbDisconnect(conn)
 
@@ -499,6 +509,205 @@ test_that("store_species() works fine", {
     ),
     "'junk' is not available is language\\$code"
   )
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("store_source_species_species() works fine", {
+  conn <- connect_db()
+
+  expect_error(
+    store_source_species_species(
+      species = ut.species,
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species_dup,
+      datafield = ut.datafield,
+      conn = conn
+    ),
+    "Duplicate combinations of species_local_id and source_species_local_id are
+found in source_species_species."
+  )
+
+  expect_is(
+    hash <- store_source_species_species(
+      species = ut.species,
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species,
+      datafield = ut.datafield,
+      conn = conn
+    ),
+    "character"
+  )
+
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(conn, "
+    SELECT
+      s.id AS species_id,
+      s.nbn_key AS nbn_key,
+      ss.external_code AS external_code,
+      ss.id AS source_species_id
+    FROM
+      public.source_species AS ss
+    INNER JOIN
+      (
+        public.source_species_species AS sss
+      INNER JOIN
+        public.species AS s
+      ON
+        sss.source_species = s.id
+      )
+    ON
+      sss.species = ss.id
+    WHERE
+      sss.destroy IS NULL
+  ") %>%
+    dplyr::full_join(
+      ut.species %>%
+        select_(species_local_id = ~local_id, ~nbn_key) %>%
+        inner_join(
+          ut.source_species_species,
+          by = "species_local_id"
+        ) %>%
+        inner_join(
+          ut.source_species %>%
+            select_(source_species_local_id = ~local_id, ~external_code),
+          by = "source_species_local_id"
+        ),
+      by = c("nbn_key", "external_code")
+    )
+  expect_false(any(is.na(stored$species_local_id)))
+  expect_false(any(is.na(stored$species_id)))
+  expect_false(any(is.na(stored$source_species_local_id)))
+  expect_false(any(is.na(stored$source_species_id)))
+  expect_identical(nrow(stored), nrow(ut.source_species_species))
+
+  expect_is(
+    hash <- store_source_species_species(
+      species = ut.species,
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species2,
+      datafield = ut.datafield,
+      clean = FALSE,
+      hash = "junk",
+      conn = conn
+    ),
+    "character"
+  )
+
+  expect_identical(hash, "junk")
+
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+
+  stored <- dbGetQuery(conn, "
+    SELECT
+      s.id AS species_id,
+      s.nbn_key AS nbn_key,
+      ss.external_code AS external_code,
+      ss.id AS source_species_id
+    FROM
+      public.source_species AS ss
+    INNER JOIN
+      (
+        public.source_species_species AS sss
+      INNER JOIN
+        public.species AS s
+      ON
+        sss.source_species = s.id
+      )
+    ON
+      sss.species = ss.id
+    WHERE
+      sss.destroy IS NULL
+  ") %>%
+    dplyr::full_join(
+      ut.species %>%
+        select_(species_local_id = ~local_id, ~nbn_key) %>%
+        inner_join(
+          ut.source_species_species2 %>%
+            mutate_each_(
+              funs(as.character),
+              colnames(ut.source_species_species2)
+            ),
+          by = "species_local_id"
+        ) %>%
+        inner_join(
+          ut.source_species %>%
+            select_(source_species_local_id = ~local_id, ~external_code),
+          by = "source_species_local_id"
+        ),
+      by = c("nbn_key", "external_code")
+    )
+  expect_false(any(is.na(stored$species_local_id)))
+  expect_false(any(is.na(stored$species_id)))
+  expect_false(any(is.na(stored$source_species_local_id)))
+  expect_false(any(is.na(stored$source_species_id)))
+  expect_identical(nrow(stored), nrow(ut.source_species_species2))
 
   DBI::dbDisconnect(conn)
 })

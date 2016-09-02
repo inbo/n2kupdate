@@ -4,7 +4,7 @@
 \alias{store_species}
 \title{store species in the database}
 \usage{
-store_species(species, language, conn, clean = TRUE)
+store_species(species, language, conn, hash, clean = TRUE)
 }
 \arguments{
 \item{species}{a data.frame with species metadata}
@@ -12,6 +12,8 @@ store_species(species, language, conn, clean = TRUE)
 \item{language}{the data.frame with language Must contains code and description. Other variables are ignored. code and description must have unique values.}
 
 \item{conn}{a DBIconnection}
+
+\item{hash}{the hash of the update session}
 
 \item{clean}{remove the staging table after update. Defaults to TRUE}
 }

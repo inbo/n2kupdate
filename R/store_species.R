@@ -9,7 +9,7 @@
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 #' @details species must contain at least the variables scientific_name and nbn_key. Other variables must be listed in language$code.
-store_species <- function(species, language, conn, clean = TRUE){
+store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(inherits(species, "data.frame"))
   assert_that(inherits(language, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
@@ -35,7 +35,11 @@ store_species <- function(species, language, conn, clean = TRUE){
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
 
-  hash <- sha1(list(species, language, Sys.time()))
+  if (missing(hash)) {
+    hash <- sha1(list(species, language, Sys.time()))
+  } else {
+    assert_that(is.string(hash))
+  }
   language.sql <- store_language(
     language = language,
     hash = hash,
