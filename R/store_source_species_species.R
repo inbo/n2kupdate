@@ -226,5 +226,6 @@ found in source_species_species."
     )
   }
 
-  return(hash)
+  attr(staging.species, "hash") <- hash
+  return(staging.species)
 }

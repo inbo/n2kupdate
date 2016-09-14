@@ -29,7 +29,7 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
 
-  species_group %>%
+  staging.species_group <- species_group %>%
     transmute_(
       id = ~NA_integer_,
       ~local_id,
@@ -37,7 +37,8 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
       ~scheme
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description))) %>%
+    mutate_(fingerprint = ~sha1(c(description = description)))
+  staging.species_group %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -87,8 +88,11 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
     species_group
   ) %>%
     dbGetQuery(conn = conn)
+
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("species_group_", hash)))
   }
-  return(species_group)
+
+  attr(staging.species_group, "hash") <- hash
+  return(staging.species_group)
 }
