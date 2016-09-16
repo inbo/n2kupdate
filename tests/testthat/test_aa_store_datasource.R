@@ -20,6 +20,16 @@ ut.datasource2 <- data.frame(
   password = c(NA, "unittest"),
   stringsAsFactors = TRUE
 )
+ut.datasource3 <- data.frame(
+  description = "Unit test datasource 1",
+  datasource_type = "PostgreSQL",
+  connect_method = "Credentials stored in database",
+  server = "localhost",
+  dbname = "n2kresult_dev",
+  username = "unittest",
+  password = "unittest",
+  stringsAsFactors = FALSE
+)
 ut <- sprintf("unit test %i", 1:2)
 test_that("input is suitable", {
   expect_error(
@@ -317,6 +327,44 @@ test_that("it stores updates data correctly", {
           d.description, dt.description, dp.description"
       )
     )
+
+  expect_is(
+    hash <- store_datasource(datasource = ut.datasource3, conn = conn),
+    "character"
+  )
+
+  "
+SELECT
+  d.description,
+  dt.description AS datasource_type,
+  dp.description AS parameter,
+  dv.value
+FROM
+  (
+    public.datasource_value AS dv
+  INNER JOIN
+    public.datasource_parameter AS dp
+  ON
+    dv.parameter = dp.id
+  )
+INNER JOIN
+  (
+    public.datasource AS d
+  INNER JOIN
+    public.datasource_type AS dt
+  ON
+    d.datasource_type = dt.id
+  )
+ON
+  dv.datasource = d.id
+WHERE
+  dv.destroy IS NULL
+ORDER BY
+  d.description, dt.description, dp.description" %>%
+    dbGetQuery(conn = conn) %>%
+    dplyr::count_(~description) %>%
+    nrow() %>%
+    expect_identical(2L)
 
   DBI::dbDisconnect(conn)
 })

@@ -146,7 +146,13 @@ store_datasource <- function(datasource, conn){
     SET
       destroy = current_timestamp
     FROM
-      public.datasource_value AS dvp
+      (
+        public.datasource_value AS dvp
+      INNER JOIN
+        staging.%s AS ds
+      ON
+        dvp.datasource = ds.id
+      )
     LEFT JOIN
       (
         (
@@ -174,6 +180,7 @@ store_datasource <- function(datasource, conn){
       dvp.value = target.value AND
       dvp.spawn = target.spawn
     ",
+    datasource.sql,
     datasource_value,
     datasource.sql,
     attr(datasource_parameter, "sql")
