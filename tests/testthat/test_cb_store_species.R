@@ -156,7 +156,7 @@ test_that("store_species_group works correctly", {
     "character"
   )
   expect_identical(
-    hash ,
+    hash,
     "junk"
   )
   c("staging", "species_group_junk") %>%
@@ -929,7 +929,10 @@ found in species_group_species."
         select_(species_local_id = ~local_id, ~nbn_key) %>%
         inner_join(
           ut.species_group_species2 %>%
-            mutate_each_(funs(as.character), colnames(ut.species_group_species2)),
+            mutate_each_(
+              funs(as.character),
+              colnames(ut.species_group_species2)
+            ),
           by = "species_local_id"
         ) %>%
         inner_join(

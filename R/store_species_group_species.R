@@ -82,7 +82,10 @@ found in species_group_species."
       species,
       by = c("scientific_name", "nbn_key")
     ) %>%
-    select_(species_local_id = ~local_id, species_fingerprint = ~fingerprint) %>%
+    select_(
+      species_local_id = ~local_id,
+      species_fingerprint = ~fingerprint
+    ) %>%
     inner_join(
       species_group_species,
       by = "species_local_id"
