@@ -48,15 +48,6 @@ store_location_group_location <- function(
     location_group_location <- location_group_location %>%
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
-  assert_that(
-    all(location_group_location$location_local_id %in% location$local_id)
-  )
-  assert_that(
-    all(
-      location_group_location$location_group_local_id %in%
-        location_group$local_id
-    )
-  )
 
   if (missing(hash)) {
     hash <- sha1(list(
@@ -83,6 +74,16 @@ store_location_group_location <- function(
     hash = hash,
     conn = conn,
     clean = FALSE
+  )
+
+  assert_that(
+    all(location_group_location$location_local_id %in% location$local_id)
+  )
+  assert_that(
+    all(
+      location_group_location$location_group_local_id %in%
+        location_group$local_id
+    )
   )
 
   # write to staging table
