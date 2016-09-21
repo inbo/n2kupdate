@@ -73,7 +73,7 @@ found in species_group_species."
   assert_that(
     all(
       species_group_species$species_group_local_id %in%
-        source_species$local_id
+        species_group$local_id
     )
   )
 
