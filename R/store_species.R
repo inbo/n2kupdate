@@ -18,6 +18,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(has_name(species, "local_id"))
   assert_that(are_equal(anyDuplicated(species$scientific_name), 0L))
   assert_that(are_equal(anyDuplicated(species$nbn_key), 0L))
+  assert_that(are_equal(anyDuplicated(species$local_id), 0L))
 
   lang.code <- species %>%
     select_(~-local_id, ~-scientific_name, ~-nbn_key) %>%
