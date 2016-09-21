@@ -1,5 +1,5 @@
 #' store source species in the database
-#' @param source_species_species as data.frame linking the local species id to the local source_species id
+#' @param source_species_species as data.frame linking the local species id to the local source_species id. Must contain species_local_id and source_species_local_id. Other variables are ignored.
 #' @inheritParams store_datasource_parameter
 #' @inheritParams store_species
 #' @inheritParams store_source_species
@@ -9,15 +9,6 @@
 #' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
-#' @details
-#'
-#' \itemize{
-#'  \item species must contain at least the variables scientific_name and nbn_key. Other variables must be listed in language$code.
-#'  \item source_species must have variables local_id, description, datafield_local_id and extranal_code. Other variables are ignored.
-#'  \item datafield must have variables local_id, datasource, table_name, primary_key and datafield_type
-#'  \item all local_id variables must be unique within their data.frame
-#'  \item all values in source_species$datafield_local_id must exist in datafield$local_id
-#' }
 store_source_species_species <- function(
   species,
   language,

@@ -8,15 +8,15 @@ store_source_species_species(species, language, source_species,
   source_species_species, datafield, conn, hash, clean = TRUE)
 }
 \arguments{
-\item{species}{a data.frame with species metadata}
+\item{species}{a data.frame with species metadata. Must contain at least local_id, scientific_name and nbn_key. Other variable names must match the values in language$code..}
 
 \item{language}{the data.frame with language Must contains code and description. Other variables are ignored. code and description must have unique values.}
 
-\item{source_species}{a data.frame with source species metadata}
+\item{source_species}{a data.frame with source species metadata. Must contain local_id, description, datafield_local_id and extrenal_code. Other variables are ignored.}
 
-\item{source_species_species}{as data.frame linking the local species id to the local source_species id}
+\item{source_species_species}{as data.frame linking the local species id to the local source_species id. Must contain species_local_id and source_species_local_id. Other variables are ignored.}
 
-\item{datafield}{a data.frame with datafield metadata}
+\item{datafield}{a data.frame with datafield metadata. Must contain variables local_id, datasource, table_name, primary_key and datafield_type.}
 
 \item{conn}{a DBIconnection}
 
@@ -26,14 +26,5 @@ store_source_species_species(species, language, source_species,
 }
 \description{
 store source species in the database
-}
-\details{
-\itemize{
- \item species must contain at least the variables scientific_name and nbn_key. Other variables must be listed in language$code.
- \item source_species must have variables local_id, description, datafield_local_id and extranal_code. Other variables are ignored.
- \item datafield must have variables local_id, datasource, table_name, primary_key and datafield_type
- \item all local_id variables must be unique within their data.frame
- \item all values in source_species$datafield_local_id must exist in datafield$local_id
-}
 }
 

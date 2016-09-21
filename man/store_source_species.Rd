@@ -7,9 +7,9 @@
 store_source_species(source_species, datafield, conn, hash, clean = TRUE)
 }
 \arguments{
-\item{source_species}{a data.frame with source species metadata}
+\item{source_species}{a data.frame with source species metadata. Must contain local_id, description, datafield_local_id and extrenal_code. Other variables are ignored.}
 
-\item{datafield}{a data.frame with datafield metadata}
+\item{datafield}{a data.frame with datafield metadata. Must contain variables local_id, datasource, table_name, primary_key and datafield_type.}
 
 \item{conn}{a DBIconnection}
 
@@ -19,13 +19,5 @@ store_source_species(source_species, datafield, conn, hash, clean = TRUE)
 }
 \description{
 store source species in the database
-}
-\details{
-\itemize{
- \item source_species must have variables local_id, description, datafield_local_id and extranal_code. Other variables are ignored.
- \item datafield must have variables local_id, datasource, table_name, primary_key and datafield_type
- \item all local_id variables must be unique within their data.frame
- \item all values in source_species$datafield_local_id must exist in datafield$local_id
-}
 }
 

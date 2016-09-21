@@ -8,19 +8,19 @@ store_species_group_species(species, language, source_species,
   source_species_species, datafield, species_group, species_group_species, conn)
 }
 \arguments{
-\item{species}{a data.frame with species metadata}
+\item{species}{a data.frame with species metadata. Must contain at least local_id, scientific_name and nbn_key. Other variable names must match the values in language$code..}
 
 \item{language}{the data.frame with language Must contains code and description. Other variables are ignored. code and description must have unique values.}
 
-\item{source_species}{a data.frame with source species metadata}
+\item{source_species}{a data.frame with source species metadata. Must contain local_id, description, datafield_local_id and extrenal_code. Other variables are ignored.}
 
-\item{source_species_species}{as data.frame linking the local species id to the local source_species id}
+\item{source_species_species}{as data.frame linking the local species id to the local source_species id. Must contain species_local_id and source_species_local_id. Other variables are ignored.}
 
-\item{datafield}{a data.frame with datafield metadata}
+\item{datafield}{a data.frame with datafield metadata. Must contain variables local_id, datasource, table_name, primary_key and datafield_type.}
 
 \item{species_group}{the data.frame with species groups. Must contains local_id, description and scheme. Other variables are ignored. local_id must have unique values.}
 
-\item{species_group_species}{as data.frame linking the local species group id to the local species id}
+\item{species_group_species}{as data.frame linking the local species group id to the local species id. Must contain variables species_local_id and species_group_local_id. Other variables are ignored.}
 
 \item{conn}{a DBIconnection}
 }

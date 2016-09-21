@@ -1,5 +1,5 @@
 #' store all species related information in the database
-#' @param species_group_species as data.frame linking the local species group id to the local species id
+#' @param species_group_species as data.frame linking the local species group id to the local species id. Must contain variables species_local_id and species_group_local_id. Other variables are ignored.
 #' @inheritParams store_datasource_parameter
 #' @inheritParams store_species
 #' @inheritParams store_source_species

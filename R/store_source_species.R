@@ -1,20 +1,12 @@
 #' store source species in the database
-#' @param source_species a data.frame with source species metadata
-#' @param datafield a data.frame with datafield metadata
+#' @param source_species a data.frame with source species metadata. Must contain local_id, description, datafield_local_id and extrenal_code. Other variables are ignored.
+#' @param datafield a data.frame with datafield metadata. Must contain variables local_id, datasource, table_name, primary_key and datafield_type.
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
-#' @details
-#'
-#' \itemize{
-#'  \item source_species must have variables local_id, description, datafield_local_id and extranal_code. Other variables are ignored.
-#'  \item datafield must have variables local_id, datasource, table_name, primary_key and datafield_type
-#'  \item all local_id variables must be unique within their data.frame
-#'  \item all values in source_species$datafield_local_id must exist in datafield$local_id
-#' }
 store_source_species <- function(
   source_species,
   datafield,

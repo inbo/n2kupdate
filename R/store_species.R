@@ -1,5 +1,5 @@
 #' store species in the database
-#' @param species a data.frame with species metadata
+#' @param species a data.frame with species metadata. Must contain at least local_id, scientific_name and nbn_key. Other variable names must match the values in language$code..
 #' @inheritParams store_language
 #' @inheritParams store_datasource_parameter
 #' @export
@@ -8,7 +8,6 @@
 #' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs rename_
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
-#' @details species must contain at least the variables scientific_name and nbn_key. Other variables must be listed in language$code.
 store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(inherits(species, "data.frame"))
   assert_that(inherits(language, "data.frame"))
@@ -16,6 +15,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
 
   assert_that(has_name(species, "scientific_name"))
   assert_that(has_name(species, "nbn_key"))
+  assert_that(has_name(species, "local_id"))
   assert_that(are_equal(anyDuplicated(species$scientific_name), 0L))
   assert_that(are_equal(anyDuplicated(species$nbn_key), 0L))
 
