@@ -1,0 +1,94 @@
+context("store_dataset")
+conn <- connect_db()
+ut <- sprintf("unit test %i", 1:2)
+ut.dataset <- data.frame(
+  fingerprint = ut,
+  filename = ut,
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
+  import_date = Sys.time(),
+  stringsAsFactors = FALSE
+)
+ut.dataset2 <- data.frame(
+  fingerprint = ut,
+  filename = rev(ut),
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
+  import_date = Sys.time(),
+  stringsAsFactors = TRUE
+)
+DBI::dbDisconnect(conn)
+
+test_that("stores new datasets", {
+  conn <- connect_db()
+
+  expect_is(
+    hash <- store_dataset(dataset = ut.dataset, conn = conn),
+    "character"
+  )
+
+  c("staging", paste0("dataset_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(
+      conn = conn, "
+      SELECT
+        d.fingerprint,
+        d.filename,
+        ds.fingerprint AS datasource,
+        d.import_date
+      FROM
+        public.dataset AS d
+      INNER JOIN
+        public.datasource AS ds
+      ON
+        d.datasource = ds.id"
+    )
+  expect_identical(
+    stored %>%
+      select_(~-import_date),
+    ut.dataset %>%
+      select_(~-import_date)
+  )
+
+  expect_true(all(stored$import_date - ut.dataset$import_date < 0.1))
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("keeps metadata of existing fingerprints", {
+  conn <- connect_db()
+
+  expect_is(
+    hash <- store_dataset(dataset = ut.dataset2, conn = conn),
+    "character"
+  )
+
+  c("staging", paste0("dataset_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(
+      conn = conn, "
+      SELECT
+        d.fingerprint,
+        d.filename,
+        ds.fingerprint AS datasource,
+        d.import_date
+      FROM
+        public.dataset AS d
+      INNER JOIN
+        public.datasource AS ds
+      ON
+        d.datasource = ds.id"
+    )
+  expect_identical(
+    stored %>%
+      select_(~-import_date),
+    ut.dataset %>%
+      select_(~-import_date)
+  )
+
+  expect_true(all(stored$import_date - ut.dataset$import_date < 0.1))
+
+  DBI::dbDisconnect(conn)
+})

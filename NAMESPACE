@@ -3,6 +3,7 @@
 export(connect_db)
 export(store_datafield)
 export(store_datafield_type)
+export(store_dataset)
 export(store_datasource)
 export(store_datasource_parameter)
 export(store_datasource_type)
