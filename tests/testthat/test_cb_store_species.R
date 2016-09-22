@@ -764,7 +764,7 @@ found in species_group_species."
   )
 
   expect_is(
-    hash <- store_species_group_species(
+    output <- store_species_group_species(
       species = ut.species,
       language = ut.language,
       source_species = ut.source_species,
@@ -774,6 +774,10 @@ found in species_group_species."
       species_group_species = ut.species_group_species,
       conn = conn
     ),
+    "list"
+  )
+  expect_is(
+    hash <- attr(output, "hash"),
     "character"
   )
 
@@ -855,7 +859,7 @@ found in species_group_species."
 
 
   expect_is(
-    hash <- store_species_group_species(
+    output <- store_species_group_species(
       species = ut.species,
       language = ut.language,
       source_species = ut.source_species,
@@ -865,6 +869,10 @@ found in species_group_species."
       species_group_species = ut.species_group_species2,
       conn = conn
     ),
+    "list"
+  )
+  expect_is(
+    hash <- attr(output, "hash"),
     "character"
   )
 

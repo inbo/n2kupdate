@@ -216,5 +216,11 @@ found in species_group_species."
     dbRemoveTable(conn, c("staging", paste0("species_group_species_", hash)))
   )
 
-  return(hash)
+  output <- list(
+    species = staging.species,
+    species_group = staging.species_group
+  )
+  attr(output, "hash") <- hash
+
+  return(output)
 }
