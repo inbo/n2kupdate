@@ -7,6 +7,9 @@
 store_analysis_version(analysis_version, hash, clean = TRUE, conn)
 }
 \arguments{
+\item{analysis_version}{an n2kAnalysisVersion object. See
+\code{\link{get_analysis_version}}}
+
 \item{hash}{the hash of the update session}
 
 \item{clean}{remove the staging table after update. Defaults to TRUE}

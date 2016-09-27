@@ -1,9 +1,12 @@
 #' Store the analysis version in the database
+#' @param analysis_version an n2kAnalysisVersion object. See
+#'   \code{\link{get_analysis_version}}
 #' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join mutate_each_ funs
+#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join
+#'   mutate_each_ funs
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   assert_that(inherits(analysis_version, "n2kAnalysisVersion"))
