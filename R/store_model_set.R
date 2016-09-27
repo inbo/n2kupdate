@@ -24,11 +24,9 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
     stop("last_year must be greater or equal to first_year")
   }
   if (
-    any(model_set$duration != (model_set$last_year - model_set$first_year + 1))
+    any(model_set$duration > (model_set$last_year - model_set$first_year + 1))
   ) {
-    stop(
-"duration must be equal to the difference between last_year and first_year + 1"
-    )
+    stop("duration cannot be larger than last_year - first_year + 1")
   }
   assert_that(noNA(
     model_set %>%

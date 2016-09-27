@@ -41,7 +41,7 @@ ut.model_set2e <- data.frame(
   description = ut,
   first_year = 0:1,
   last_year = 10:11,
-  duration = c(11, 2),
+  duration = c(110, 2),
   stringsAsFactors = FALSE
 )
 
@@ -210,7 +210,7 @@ test_that("store_model_set works", {
   )
   expect_error(
     store_model_set(model_set = ut.model_set2e, conn = conn),
-"duration must be equal to the difference between last_year and first_year \\+ 1" #nolint
+    "duration cannot be larger than last_year \\- first_year \\+ 1"
   )
 
   expect_is(
