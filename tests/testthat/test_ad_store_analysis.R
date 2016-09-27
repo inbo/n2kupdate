@@ -384,6 +384,14 @@ test_that("store_analysis_version", {
     ) %>%
     expect_identical(stored)
 
+  ut.analysis_version@AnalysisVersion <- ut.analysis_version@AnalysisVersion %>%
+    mutate_(Fingerprint = ~factor(Fingerprint))
+  ut.analysis_version@RPackage <- ut.analysis_version@RPackage %>%
+    mutate_(Fingerprint = ~factor(Fingerprint))
+  ut.analysis_version@AnalysisVersionRPackage <-
+    ut.analysis_version@AnalysisVersionRPackage %>%
+      dplyr::mutate_all(funs(factor))
+
   expect_is(
     hash <- store_analysis_version(
       analysis_version = ut.analysis_version,
@@ -450,6 +458,7 @@ test_that("store_analysis_version", {
       origin = ~Origin,
       revision = ~Revision
     ) %>%
+    dplyr::mutate_all(funs(as.character)) %>%
     expect_identical(stored)
 
   DBI::dbDisconnect(conn)

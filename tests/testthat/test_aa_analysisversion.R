@@ -26,4 +26,19 @@ test_that("sha1.n2kAnalysisVersion() works", {
     "character"
   )
   expect_identical(nchar(hash), 40L)
+
+  ut.analysis_version@AnalysisVersion <- ut.analysis_version@AnalysisVersion %>%
+    mutate_(Fingerprint = ~factor(Fingerprint))
+  ut.analysis_version@RPackage <- ut.analysis_version@RPackage %>%
+    mutate_(Fingerprint = ~factor(Fingerprint))
+  ut.analysis_version@AnalysisVersionRPackage <-
+    ut.analysis_version@AnalysisVersionRPackage %>%
+      mutate_(AnalysisVersion = ~factor(AnalysisVersion))
+  expect_is(
+    hash2 <- sha1(ut.analysis_version),
+    "character"
+  )
+  expect_identical(nchar(hash2), 40L)
+  expect_identical(hash, hash2)
+
 })
