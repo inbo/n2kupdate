@@ -21,6 +21,8 @@ setClass(
       Fingerprint = character(0),
       Description = character(0),
       Version = character(0),
+      Origing = character(0),
+      Revision = character(0),
       stringsAsFactors = FALSE
     ),
     AnalysisVersionRPackage = data.frame(
@@ -41,6 +43,8 @@ setValidity(
     assert_that(has_name(object@RPackage, "Fingerprint"))
     assert_that(has_name(object@RPackage, "Description"))
     assert_that(has_name(object@RPackage, "Version"))
+    assert_that(has_name(object@RPackage, "Origin"))
+    assert_that(has_name(object@RPackage, "Revision"))
 
     assert_that(has_name(object@AnalysisVersionRPackage, "AnalysisVersion"))
     assert_that(has_name(object@AnalysisVersionRPackage, "RPackage"))

@@ -23,6 +23,44 @@ setMethod(
   f = "session_package",
   signature = signature(session = "sessionInfo"),
   definition = function(session){
+
+    package_data_frame <- function(package){
+      if ("Repository" %in% names(package)) {
+        return(
+          data.frame(
+            Description = package$Package,
+            Version = package$Version,
+            Origin = package$Repository,
+            Revision = NA_character_,
+            stringsAsFactors = FALSE
+          )
+        )
+      }
+      if ("GithubRepo" %in% names(package)) {
+        return(
+          data.frame(
+            Description = package$Package,
+            Version = package$Version,
+            Origin = paste(
+              "https://github.com/",
+              package$GithubUsername,
+              package$GithubRepo,
+              sep = "/"
+            ),
+            Revision = package$GithubSHA1,
+            stringsAsFactors = FALSE
+          )
+        )
+      }
+      data.frame(
+        Description = package$Package,
+        Version = package$Version,
+        Origin = NA_character_,
+        Revision = NA_character_,
+        stringsAsFactors = FALSE
+      )
+    }
+
     package <- data.frame(
       Description = c(session$running, "R"),
       Version = c(
@@ -32,39 +70,28 @@ setMethod(
           collapse = "."
         )
       ),
+      Origin = NA_character_,
+      Revision = c(NA_character_, session$R.version$`svn rev`),
       stringsAsFactors = FALSE
     )
     if ("otherPkgs" %in% names(session)) {
-      package <- lapply(
-        session$otherPkgs,
-        function(i){
-          data.frame(
-            Description = i$Package,
-            Version = i$Version,
-            stringsAsFactors = FALSE
-          )
-        }
-      ) %>%
+      package <- lapply(session$otherPkgs, package_data_frame) %>%
         bind_rows(package)
     }
     if ("loadedOnly" %in% names(session)) {
-      package <- lapply(
-        session$loadedOnly,
-        function(i){
-          data.frame(
-            Description = i$Package,
-            Version = i$Version,
-            stringsAsFactors = FALSE
-          )
-        }
-      ) %>%
+      package <- lapply(session$loadedOnly, package_data_frame) %>%
         bind_rows(package)
     }
     rownames(package) <- NULL
     package <- package %>%
       rowwise() %>%
       mutate_(
-        Fingerprint = ~sha1(c(Description = Description, Version = Version))
+        Fingerprint = ~sha1(list(
+          Description = Description,
+          Version = Version,
+          Origin = Origin,
+          Revision = Revision
+        ))
       ) %>%
       arrange_(~Fingerprint) %>%
       as.data.frame()

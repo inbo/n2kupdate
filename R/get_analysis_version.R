@@ -24,6 +24,8 @@ setMethod(
   definition = function(version){
     assert_that(has_name(version, "Description"))
     assert_that(has_name(version, "Version"))
+    assert_that(has_name(version, "Origin"))
+    assert_that(has_name(version, "Revision"))
     assert_that(has_name(version, "Fingerprint"))
     assert_that(has_attr(version, "AnalysisVersion"))
 
