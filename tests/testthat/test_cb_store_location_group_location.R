@@ -59,16 +59,19 @@ test_that("it stores the correct information", {
   conn <- connect_db()
 
   expect_is(
-    hash <- store_location_group_location(
+    staging.location_group <- store_location_group_location(
       location_group_location = ut.location_group_location,
       location_group = ut.location_group,
       location = ut.location,
       datafield = ut.datafield,
       conn = conn
     ),
+    "data.frame"
+  )
+  expect_is(
+    hash <- attr(staging.location_group, "hash"),
     "character"
   )
-
   c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
@@ -161,8 +164,8 @@ test_that("it stores the correct information", {
     ut.location_group_location$location_local_id
   )
   ut.location_group$description <- factor(ut.location_group$description)
-  expect_identical(
-    hash <- store_location_group_location(
+  expect_is(
+    staging.location_group <- store_location_group_location(
       location_group_location = ut.location_group_location,
       location_group = ut.location_group,
       location = ut.location,
@@ -171,6 +174,10 @@ test_that("it stores the correct information", {
       conn = conn,
       clean = FALSE
     ),
+    "data.frame"
+  )
+  expect_identical(
+    hash <- attr(staging.location_group, "hash"),
     "junk"
   )
   c("staging", paste0("datafield_type_", hash)) %>%
@@ -313,13 +320,21 @@ test_that("subfunction works correctly", {
     "location_group does not have name scheme"
   )
   expect_is(
-    hash <- store_location_group(
+    staging.location_group <- store_location_group(
       location_group = ut.location_group,
       conn = conn
     ),
+    "data.frame"
+  )
+  expect_is(
+    hash <- attr(staging.location_group, "hash"),
+    "character"
+  )
+  expect_is(
+    sql <- attr(staging.location_group, "SQL"),
     "SQL"
   )
-  hash@.Data %>%
+  sql@.Data %>%
     gsub(pattern = "\\\"", replacement = "") %>%
     c("staging") %>%
     rev() %>%

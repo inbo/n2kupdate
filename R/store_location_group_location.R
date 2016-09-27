@@ -69,12 +69,13 @@ store_location_group_location <- function(
   )
   location.sql <- paste0("location_", hash) %>%
     dbQuoteIdentifier(conn = conn)
-  location_group.sql <- store_location_group(
+  staging.location_group <- store_location_group(
     location_group = location_group,
     hash = hash,
     conn = conn,
     clean = FALSE
   )
+  location_group.sql <- attr(staging.location_group, "SQL")
 
   assert_that(
     all(location_group_location$location_local_id %in% location$local_id)
@@ -222,5 +223,5 @@ store_location_group_location <- function(
     )
   }
 
-  return(hash)
+  return(staging.location_group)
 }

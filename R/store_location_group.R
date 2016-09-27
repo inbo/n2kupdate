@@ -29,7 +29,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
 
-  location_group %>%
+  staging <- location_group %>%
     transmute_(
       id = ~NA_integer_,
       ~local_id,
@@ -37,14 +37,15 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       ~scheme
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description))) %>%
+    mutate_(fingerprint = ~sha1(c(description = description)))
+  staging %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
       name = c("staging", paste0("location_group_", hash)),
       row.names = FALSE
     )
-  location_group <- paste0("location_group_", hash) %>%
+  location_group.sql <- paste0("location_group_", hash) %>%
     dbQuoteIdentifier(conn = conn)
   sprintf("
     INSERT INTO public.location_group
@@ -67,7 +68,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       s.fingerprint = p.fingerprint
     WHERE
       p.id IS NULL",
-    location_group
+    location_group.sql
   ) %>%
     dbGetQuery(conn = conn)
   sprintf("
@@ -83,12 +84,15 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       s.fingerprint = p.fingerprint
     WHERE
       t.fingerprint = s.fingerprint",
-    location_group,
-    location_group
+    location_group.sql,
+    location_group.sql
   ) %>%
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("location_group_", hash)))
   }
-  return(location_group)
+
+  attr(staging, "hash") <- hash
+  attr(staging, "SQL") <- location_group.sql
+  return(staging)
 }
