@@ -1,4 +1,4 @@
-#' Store status levels in the database
+#' Store model type in the database
 #' @param model_type a data.frame with the modeltypes. Must have a variable "description". The variable "long_description" is optional.
 #' @inheritParams store_datasource_parameter
 #' @export

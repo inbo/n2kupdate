@@ -2,7 +2,7 @@
 % Please edit documentation in R/store_model_type.R
 \name{store_model_type}
 \alias{store_model_type}
-\title{Store status levels in the database}
+\title{Store model type in the database}
 \usage{
 store_model_type(model_type, hash, clean = TRUE, conn)
 }
@@ -16,6 +16,6 @@ store_model_type(model_type, hash, clean = TRUE, conn)
 \item{conn}{a DBIconnection}
 }
 \description{
-Store status levels in the database
+Store model type in the database
 }
 

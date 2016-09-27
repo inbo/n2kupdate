@@ -1,4 +1,4 @@
-#' Store status levels in the database
+#' Store model sets in the database
 #' @param model_set a data.frame with the model sets. Must have variables "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.
 #' @inheritParams store_datasource_parameter
 #' @export
