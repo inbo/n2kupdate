@@ -18,3 +18,12 @@ test_that("get_analysis_version() works", {
     "n2kAnalysisVersion"
   )
 })
+
+test_that("sha1.n2kAnalysisVersion() works", {
+  ut.analysis_version <- get_analysis_version(sessionInfo())
+  expect_is(
+    hash <- sha1(ut.analysis_version),
+    "character"
+  )
+  expect_identical(nchar(hash), 40L)
+})

@@ -27,6 +27,7 @@ Collate:
     'import_S3_classes.R'
     'get_analysis_version.R'
     'session_package.R'
+    'sha1.R'
     'store_datafield.R'
     'store_datafield_type.R'
     'store_dataset.R'
