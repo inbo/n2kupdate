@@ -3,6 +3,7 @@
 S3method(sha1,n2kAnalysisVersion)
 export(connect_db)
 export(sha1)
+export(store_analysis_version)
 export(store_datafield)
 export(store_datafield_type)
 export(store_dataset)

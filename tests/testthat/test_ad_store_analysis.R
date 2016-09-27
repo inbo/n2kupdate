@@ -323,3 +323,134 @@ test_that("store_model_set works", {
 
   DBI::dbDisconnect(conn)
 })
+
+test_that("store_analysis_version", {
+  conn <- connect_db()
+
+  ut.analysis_version <- get_analysis_version(sessionInfo())
+  expect_is(
+    hash <- store_analysis_version(
+      analysis_version = ut.analysis_version,
+      conn = conn
+    ),
+    "character"
+  )
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(
+    conn = conn, "
+    SELECT
+      pav.fingerprint AS analysis_version,
+      prp.description,
+      prp.version,
+      prp.origin,
+      prp.revision
+    FROM
+    (
+      public.analysis_version AS pav
+    INNER JOIN
+      public.analysis_version_r_package AS pavrp
+    ON
+      pav.id = pavrp.analysis_version
+    )
+    INNER JOIN
+      public.r_package AS prp
+    ON
+      prp.id = pavrp.r_package"
+  )
+  ut.analysis_version@AnalysisVersion %>%
+    inner_join(
+      ut.analysis_version@AnalysisVersionRPackage,
+      by = c("Fingerprint" = "AnalysisVersion")
+    ) %>%
+    inner_join(
+      ut.analysis_version@RPackage,
+      by = c("RPackage" = "Fingerprint")
+    ) %>%
+    select_(
+      analysis_version = ~Fingerprint,
+      description = ~Description,
+      version = ~Version,
+      origin = ~Origin,
+      revision = ~Revision
+    ) %>%
+    expect_identical(stored)
+
+  expect_is(
+    hash <- store_analysis_version(
+      analysis_version = ut.analysis_version,
+      hash = "junk",
+      clean = FALSE,
+      conn = conn
+    ),
+    "character"
+  )
+  expect_identical(hash, "junk")
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+
+  stored <- dbGetQuery(
+    conn = conn, "
+    SELECT
+      pav.fingerprint AS analysis_version,
+      prp.description,
+      prp.version,
+      prp.origin,
+      prp.revision
+    FROM
+    (
+      public.analysis_version AS pav
+    INNER JOIN
+      public.analysis_version_r_package AS pavrp
+    ON
+      pav.id = pavrp.analysis_version
+    )
+    INNER JOIN
+      public.r_package AS prp
+    ON
+      prp.id = pavrp.r_package"
+  )
+  ut.analysis_version@AnalysisVersion %>%
+    inner_join(
+      ut.analysis_version@AnalysisVersionRPackage,
+      by = c("Fingerprint" = "AnalysisVersion")
+    ) %>%
+    inner_join(
+      ut.analysis_version@RPackage,
+      by = c("RPackage" = "Fingerprint")
+    ) %>%
+    select_(
+      analysis_version = ~Fingerprint,
+      description = ~Description,
+      version = ~Version,
+      origin = ~Origin,
+      revision = ~Revision
+    ) %>%
+    expect_identical(stored)
+
+  DBI::dbDisconnect(conn)
+})

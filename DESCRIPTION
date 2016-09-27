@@ -28,6 +28,7 @@ Collate:
     'get_analysis_version.R'
     'session_package.R'
     'sha1.R'
+    'store_analysis_version.R'
     'store_datafield.R'
     'store_datafield_type.R'
     'store_dataset.R'
