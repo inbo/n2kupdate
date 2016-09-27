@@ -7,7 +7,7 @@ test_that("session_package() works", {
   )
   expect_identical(
     colnames(sp),
-    c("Description", "Version", "Fingerprint", "Origin", "Revision")
+    c("Description", "Version", "Origin", "Revision", "Fingerprint")
   )
   expect_true(assertthat::has_attr(sp, "AnalysisVersion"))
 })
