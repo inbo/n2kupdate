@@ -1,5 +1,5 @@
 #' Store model sets in the database
-#' @param model_set a data.frame with the model sets. Must have variables "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.
+#' @param model_set a data.frame with the model sets. Must have variables "local_id", "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.
 #' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
@@ -8,6 +8,7 @@
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_set <- function(model_set, hash, clean = TRUE, conn){
   assert_that(inherits(model_set, "data.frame"))
+  assert_that(has_name(model_set, "local_id"))
   assert_that(has_name(model_set, "description"))
   assert_that(has_name(model_set, "first_year"))
   assert_that(has_name(model_set, "last_year"))
@@ -30,7 +31,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
   }
   assert_that(noNA(
     model_set %>%
-      select_(~description, ~first_year, ~last_year, ~duration)
+      select_(~local_id, ~description, ~first_year, ~last_year, ~duration)
   ))
 
   factors <- sapply(model_set, is.factor)
@@ -68,7 +69,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
       model_set,
       by = "description"
     ) %>%
-    select_(~model_type, ~first_year, ~last_year, ~duration) %>%
+    select_(~local_id, ~model_type, ~first_year, ~last_year, ~duration) %>%
     mutate_(id = ~NA_integer_) %>%
     rowwise() %>%
     mutate_(fingerprint = ~sha1(c(
@@ -79,6 +80,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
     ))) %>%
     arrange_(~model_type, ~first_year, ~last_year)
   staging %>%
+    select_(~-local_id) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

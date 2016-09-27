@@ -7,7 +7,7 @@
 store_model_set(model_set, hash, clean = TRUE, conn)
 }
 \arguments{
-\item{model_set}{a data.frame with the model sets. Must have variables "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.}
+\item{model_set}{a data.frame with the model sets. Must have variables "local_id", "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.}
 
 \item{hash}{the hash of the update session}
 

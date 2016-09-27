@@ -1,4 +1,5 @@
 context("store_analysis")
+conn <- connect_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.status <- ut
 ut.model_type <- data.frame(
@@ -16,6 +17,7 @@ ut.model_type3 <- data.frame(
   stringsAsFactors = FALSE
 )
 ut.model_set <- data.frame(
+  local_id = ut,
   description = ut,
   first_year = 0:1,
   last_year = 10:11,
@@ -23,6 +25,7 @@ ut.model_set <- data.frame(
   stringsAsFactors = FALSE
 )
 ut.model_set2 <- data.frame(
+  local_id = ut,
   description = ut,
   long_description = ut,
   first_year = 0:1,
@@ -31,6 +34,7 @@ ut.model_set2 <- data.frame(
   stringsAsFactors = TRUE
 )
 ut.model_set1e <- data.frame(
+  local_id = ut,
   description = ut,
   first_year = 20:21,
   last_year = 10:11,
@@ -38,12 +42,36 @@ ut.model_set1e <- data.frame(
   stringsAsFactors = FALSE
 )
 ut.model_set2e <- data.frame(
+  local_id = ut,
   description = ut,
   first_year = 0:1,
   last_year = 10:11,
   duration = c(110, 2),
   stringsAsFactors = FALSE
 )
+ut.analysis_version <- get_analysis_version(sessionInfo())
+ut.analysis_version2 <- ut.analysis_version
+ut.analysis_version2@AnalysisVersion <- ut.analysis_version2@AnalysisVersion %>%
+  mutate_(Fingerprint = ~factor(Fingerprint))
+ut.analysis_version2@RPackage <- ut.analysis_version2@RPackage %>%
+  mutate_(Fingerprint = ~factor(Fingerprint))
+ut.analysis_version2@AnalysisVersionRPackage <-
+  ut.analysis_version2@AnalysisVersionRPackage %>%
+    dplyr::mutate_all(funs(factor))
+ut.analysis <- data.frame(
+  file_fingerprint = ut,
+  model_set_local_id = ut.model_set$local_id,
+  location_group = DBI::dbReadTable(conn, "location_group")$fingerprint,
+  species_group = DBI::dbReadTable(conn, "species_group")$fingerprint,
+  last_year = ut.model_set$last_year,
+  seed = 1,
+  analysis_version = ut.analysis_version@AnalysisVersion$Fingerprint,
+  analysis_date = Sys.time(),
+  status = ut.status,
+  status_fingerprint = ut,
+  stringsAsFactors = FALSE
+)
+DBI::dbDisconnect(conn)
 
 test_that("store_status works", {
   conn <- connect_db()
@@ -327,7 +355,6 @@ test_that("store_model_set works", {
 test_that("store_analysis_version", {
   conn <- connect_db()
 
-  ut.analysis_version <- get_analysis_version(sessionInfo())
   expect_is(
     hash <- store_analysis_version(
       analysis_version = ut.analysis_version,
@@ -383,14 +410,6 @@ test_that("store_analysis_version", {
       revision = ~Revision
     ) %>%
     expect_identical(stored)
-
-  ut.analysis_version@AnalysisVersion <- ut.analysis_version@AnalysisVersion %>%
-    mutate_(Fingerprint = ~factor(Fingerprint))
-  ut.analysis_version@RPackage <- ut.analysis_version@RPackage %>%
-    mutate_(Fingerprint = ~factor(Fingerprint))
-  ut.analysis_version@AnalysisVersionRPackage <-
-    ut.analysis_version@AnalysisVersionRPackage %>%
-      dplyr::mutate_all(funs(factor))
 
   expect_is(
     hash <- store_analysis_version(
@@ -458,7 +477,6 @@ test_that("store_analysis_version", {
       origin = ~Origin,
       revision = ~Revision
     ) %>%
-    dplyr::mutate_all(funs(as.character)) %>%
     expect_identical(stored)
 
   DBI::dbDisconnect(conn)
