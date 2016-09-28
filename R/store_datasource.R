@@ -22,7 +22,7 @@ store_datasource <- function(datasource, conn){
       mutate_each_(funs(as.character), vars = names(factors)[factors])
   }
 
-  hash <- sha1(list(datasource, Sys.time()))
+  hash <- sha1(list(datasource, as.POSIXct(Sys.time())))
   datasource_type <- store_datasource_type(
     datasource_type = datasource$datasource_type,
     hash = hash,

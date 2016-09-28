@@ -13,7 +13,7 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
   assert_that(has_name(species_group, "description"))
   assert_that(has_name(species_group, "scheme"))
   if (missing(hash)) {
-    hash <- sha1(list(species_group, Sys.time()))
+    hash <- sha1(list(species_group, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

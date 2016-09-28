@@ -12,7 +12,7 @@ store_datasource_type <- function(datasource_type, hash, conn, clean = TRUE){
   assert_that(is(datasource_type, "character"))
   assert_that(noNA(datasource_type))
   if (missing(hash)) {
-    hash <- sha1(list(datasource_type, Sys.time()))
+    hash <- sha1(list(datasource_type, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

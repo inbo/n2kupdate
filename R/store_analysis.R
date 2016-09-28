@@ -51,7 +51,7 @@ store_analysis <- function(
   if (missing(hash)) {
     hash <- sha1(
       list(
-        analysis, model_set, analysis_version, Sys.time()
+        analysis, model_set, analysis_version, as.POSIXct(Sys.time())
       )
     )
   } else {
@@ -91,6 +91,7 @@ store_analysis <- function(
       by = c("local_id" = "model_set_local_id")
     ) %>%
     select_(~-local_id) %>%
+    mutate_(analysis_date = ~as.POSIXct(analysis_date)) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

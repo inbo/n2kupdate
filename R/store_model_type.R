@@ -13,7 +13,7 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
   if (missing(hash)) {
-    hash <- sha1(list(model_type, Sys.time()))
+    hash <- sha1(list(model_type, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

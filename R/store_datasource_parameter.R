@@ -18,7 +18,7 @@ store_datasource_parameter <- function(
   assert_that(is(datasource_parameter, "character"))
   assert_that(noNA(datasource_parameter))
   if (missing(hash)) {
-    hash <- sha1(list(datasource_parameter, Sys.time()))
+    hash <- sha1(list(datasource_parameter, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

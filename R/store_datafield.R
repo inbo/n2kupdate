@@ -26,7 +26,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(are_equal(anyDuplicated(datafield$local_id), 0L))
 
   if (missing(hash)) {
-    hash <- sha1(list(datafield, Sys.time()))
+    hash <- sha1(list(datafield, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

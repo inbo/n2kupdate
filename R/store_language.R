@@ -12,7 +12,7 @@ store_language <- function(language, hash, conn, clean = TRUE){
   assert_that(has_name(language, "code"))
   assert_that(has_name(language, "description"))
   if (missing(hash)) {
-    hash <- sha1(list(language, Sys.time()))
+    hash <- sha1(list(language, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

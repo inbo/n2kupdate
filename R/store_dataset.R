@@ -17,12 +17,13 @@ store_dataset <- function(dataset, conn){
 
   hash <- sha1(
     list(
-      dataset, Sys.time()
+      dataset, as.POSIXct(Sys.time())
     )
   )
 
   dataset %>%
     arrange_(~fingerprint) %>%
+    mutate_(import_date = ~as.POSIXct(import_date)) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

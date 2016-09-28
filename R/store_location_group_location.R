@@ -55,7 +55,7 @@ store_location_group_location <- function(
       location_group,
       location,
       datafield,
-      Sys.time()
+      as.POSIXct(Sys.time())
     ))
   } else {
     assert_that(is.string(hash))

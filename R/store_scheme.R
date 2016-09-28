@@ -12,7 +12,7 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
   assert_that(is.character(scheme))
   assert_that(noNA(scheme))
   if (missing(hash)) {
-    hash <- sha1(list(scheme, Sys.time()))
+    hash <- sha1(list(scheme, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

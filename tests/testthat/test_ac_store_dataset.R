@@ -5,14 +5,14 @@ ut.dataset <- data.frame(
   fingerprint = ut,
   filename = ut,
   datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
-  import_date = Sys.time(),
+  import_date = as.POSIXct(Sys.time()),
   stringsAsFactors = FALSE
 )
 ut.dataset2 <- data.frame(
   fingerprint = ut,
   filename = rev(ut),
   datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
-  import_date = Sys.time(),
+  import_date = as.POSIXct(Sys.time()),
   stringsAsFactors = TRUE
 )
 DBI::dbDisconnect(conn)

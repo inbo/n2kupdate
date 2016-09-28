@@ -37,7 +37,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   }
 
   if (missing(hash)) {
-    hash <- sha1(list(species, language, Sys.time()))
+    hash <- sha1(list(species, language, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

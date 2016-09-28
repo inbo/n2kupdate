@@ -13,7 +13,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
   assert_that(has_name(location_group, "description"))
   assert_that(has_name(location_group, "scheme"))
   if (missing(hash)) {
-    hash <- sha1(list(location_group, Sys.time()))
+    hash <- sha1(list(location_group, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

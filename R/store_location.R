@@ -57,7 +57,7 @@ parent_local_id are found in location."
   )
 
   if (missing(hash)) {
-    hash <- sha1(list(location, datafield, Sys.time()))
+    hash <- sha1(list(location, datafield, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

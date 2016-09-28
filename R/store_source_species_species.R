@@ -46,7 +46,7 @@ found in source_species_species."
     hash <- sha1(
       list(
         species, language, source_species, source_species_species, datafield,
-        Sys.time()
+        as.POSIXct(Sys.time())
       )
     )
   } else {

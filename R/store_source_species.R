@@ -46,7 +46,7 @@ source_species."
   assert_that(all(source_species$datafield_local_id %in% datafield$local_id))
 
   if (missing(hash)) {
-    hash <- sha1(list(source_species, datafield, Sys.time()))
+    hash <- sha1(list(source_species, datafield, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }

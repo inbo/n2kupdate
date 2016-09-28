@@ -14,7 +14,7 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
   if (missing(hash)) {
-    hash <- sha1(list(analysis_version, Sys.time()))
+    hash <- sha1(list(analysis_version, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }
