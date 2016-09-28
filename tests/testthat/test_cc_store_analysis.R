@@ -66,11 +66,26 @@ ut.analysis <- data.frame(
   last_year = ut.model_set$last_year,
   seed = 1,
   analysis_version = ut.analysis_version@AnalysisVersion$Fingerprint,
-  analysis_date = Sys.time(),
+  analysis_date = as.POSIXct(Sys.time()),
   status = ut.status,
   status_fingerprint = ut,
   stringsAsFactors = FALSE
 )
+ut.analysis2 <- data.frame(
+  file_fingerprint = ut,
+  model_set_local_id = ut.model_set$local_id,
+  location_group = DBI::dbReadTable(conn, "location_group")$fingerprint,
+  species_group = DBI::dbReadTable(conn, "species_group")$fingerprint,
+  last_year = 0,
+  seed = 2,
+  analysis_version = ut.analysis_version@AnalysisVersion$Fingerprint,
+  analysis_date = as.POSIXct(Sys.time()),
+  status = ut.status,
+  status_fingerprint = ut,
+  stringsAsFactors = TRUE
+)
+ut.analysis_dup <- ut.analysis
+ut.analysis_dup$file_fingerprint <- "junk"
 DBI::dbDisconnect(conn)
 
 test_that("store_status works", {
@@ -413,7 +428,7 @@ test_that("store_analysis_version", {
 
   expect_is(
     hash <- store_analysis_version(
-      analysis_version = ut.analysis_version,
+      analysis_version = ut.analysis_version2,
       hash = "junk",
       clean = FALSE,
       conn = conn
@@ -478,6 +493,295 @@ test_that("store_analysis_version", {
       revision = ~Revision
     ) %>%
     expect_identical(stored)
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("store_analysis() works", {
+  conn <- connect_db()
+
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis_dup,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      conn = conn
+    ),
+    "Duplicated file_fingerprint"
+  )
+
+  expect_is(
+    hash <- store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      conn = conn
+    ),
+    "character"
+  )
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  stored <- dbGetQuery(
+    conn = conn, "
+    SELECT
+      pa.id,
+      pa.file_fingerprint,
+      pmt.description,
+      pms.first_year,
+      pms.last_year,
+      pms.duration,
+      plg.fingerprint AS location_group,
+      psg.fingerprint AS species_group,
+      pa.last_year AS this_year,
+      pa.seed,
+      pav.fingerprint AS analysis_version,
+      pa.analysis_date,
+      ps.description AS status,
+      pa.status_fingerprint
+    FROM
+      (
+        public.model_set AS pms
+      INNER JOIN
+        public.model_type AS pmt
+      ON
+        pms.model_type = pmt.id
+      )
+    INNER JOIN
+      (
+        (
+          (
+            (
+              public.analysis AS pa
+            INNER JOIN
+              public.location_group AS plg
+            ON
+              pa.location_group = plg.id
+            )
+          INNER JOIN
+            public.species_group AS psg
+          ON
+            pa.species_group = psg.id
+          )
+        INNER JOIN
+          public.analysis_version AS pav
+        ON
+          pa.analysis_version = pav.id
+        )
+      INNER JOIN
+        public.status AS ps
+      ON
+        pa.status = ps.id
+      )
+    ON
+     pa.model_set = pms.id"
+  )
+  expect_equal(
+    stored %>%
+      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      arrange_(~description),
+    ut.model_set %>%
+      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      arrange_(~description)
+  )
+  expect_equal(
+    ut.analysis %>%
+      inner_join(
+        ut.model_set,
+        by = c("model_set_local_id" = "local_id")
+      ) %>%
+      transmute_(
+        ~file_fingerprint,
+        ~description,
+        ~first_year,
+        last_year = ~last_year.y,
+        ~duration,
+        ~location_group,
+        ~species_group,
+        this_year = ~last_year.x,
+        ~seed,
+        ~analysis_version,
+        analysis_date = ~format(analysis_date, format = "%F %T %z"),
+        ~status,
+        ~status_fingerprint
+      ) %>%
+      arrange_(~file_fingerprint),
+    stored %>%
+      select_(~-id) %>%
+      mutate_(
+        analysis_date = ~as.POSIXct(analysis_date) %>%
+          format(format = "%F %T %z")
+      ) %>%
+      arrange_(~file_fingerprint)
+  )
+
+    expect_is(
+    hash <- store_analysis(
+      analysis = ut.analysis2,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      hash = "junk",
+      clean = FALSE,
+      conn = conn
+    ),
+    "character"
+  )
+  expect_identical(hash, "junk")
+
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+
+  stored <- dbGetQuery(
+    conn = conn, "
+    SELECT
+      pa.id,
+      pa.file_fingerprint,
+      pmt.description,
+      pms.first_year,
+      pms.last_year,
+      pms.duration,
+      plg.fingerprint AS location_group,
+      psg.fingerprint AS species_group,
+      pa.last_year AS this_year,
+      pa.seed,
+      pav.fingerprint AS analysis_version,
+      pa.analysis_date,
+      ps.description AS status,
+      pa.status_fingerprint
+    FROM
+      (
+        public.model_set AS pms
+      INNER JOIN
+        public.model_type AS pmt
+      ON
+        pms.model_type = pmt.id
+      )
+    INNER JOIN
+      (
+        (
+          (
+            (
+              public.analysis AS pa
+            INNER JOIN
+              public.location_group AS plg
+            ON
+              pa.location_group = plg.id
+            )
+          INNER JOIN
+            public.species_group AS psg
+          ON
+            pa.species_group = psg.id
+          )
+        INNER JOIN
+          public.analysis_version AS pav
+        ON
+          pa.analysis_version = pav.id
+        )
+      INNER JOIN
+        public.status AS ps
+      ON
+        pa.status = ps.id
+      )
+    ON
+     pa.model_set = pms.id"
+  )
+  expect_equal(
+    stored %>%
+      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      arrange_(~description),
+    ut.model_set %>%
+      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      arrange_(~description)
+  )
+  expect_equal(
+    ut.analysis %>%
+      inner_join(
+        ut.model_set,
+        by = c("model_set_local_id" = "local_id")
+      ) %>%
+      transmute_(
+        ~file_fingerprint,
+        ~description,
+        ~first_year,
+        last_year = ~last_year.y,
+        ~duration,
+        ~location_group,
+        ~species_group,
+        this_year = ~last_year.x,
+        ~seed,
+        ~analysis_version,
+        analysis_date = ~format(analysis_date, format = "%F %T %z"),
+        ~status,
+        ~status_fingerprint
+      ) %>%
+      arrange_(~file_fingerprint),
+    stored %>%
+      select_(~-id) %>%
+      mutate_(
+        analysis_date = ~as.POSIXct(analysis_date) %>%
+          format(format = "%F %T %z")
+      ) %>%
+      arrange_(~file_fingerprint)
+  )
 
   DBI::dbDisconnect(conn)
 })
