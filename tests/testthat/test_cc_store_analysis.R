@@ -86,6 +86,23 @@ ut.analysis2 <- data.frame(
 )
 ut.analysis_dup <- ut.analysis
 ut.analysis_dup$file_fingerprint <- "junk"
+ut.dataset <- data.frame(
+  fingerprint = ut,
+  filename = ut,
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
+  import_date = as.POSIXct(Sys.time()),
+  stringsAsFactors = FALSE
+)
+ut.analysis_dataset <- expand.grid(
+  analysis = ut.analysis$file_fingerprint,
+  dataset = ut.dataset$fingerprint,
+  stringsAsFactors = FALSE
+)
+ut.analysis_dataset2 <- expand.grid(
+  analysis = ut.analysis$file_fingerprint,
+  dataset = ut.dataset$fingerprint,
+  stringsAsFactors = TRUE
+)
 DBI::dbDisconnect(conn)
 
 test_that("store_status works", {
@@ -781,6 +798,92 @@ test_that("store_analysis() works", {
           format(format = "%F %T %z")
       ) %>%
       arrange_(~file_fingerprint)
+  )
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("store_analysis_dataset works", {
+  conn <- connect_db()
+
+  expect_is(
+    hash <- store_analysis_dataset(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      dataset = ut.dataset,
+      analysis_dataset = ut.analysis_dataset,
+      conn = conn
+    ),
+    "character"
+  )
+  c("staging", paste0("analysis_dataset_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(
+    conn = conn, "
+    SELECT
+      pa.file_fingerprint AS analysis,
+      pd.fingerprint AS dataset
+    FROM
+      (
+        public.analysis_dataset AS pad
+      INNER JOIN
+        public.analysis AS pa
+      ON
+        pad.analysis = pa.id
+      )
+    INNER JOIN
+      public.dataset AS pd
+    ON
+      pad.dataset = pd.id"
+  )
+  expect_equivalent(
+    stored %>%
+      arrange_(~analysis, ~dataset),
+    ut.analysis_dataset %>%
+      arrange_(~analysis, ~dataset)
+  )
+
+  expect_is(
+    hash <- store_analysis_dataset(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      dataset = ut.dataset,
+      analysis_dataset = ut.analysis_dataset2,
+      conn = conn
+    ),
+    "character"
+  )
+  c("staging", paste0("analysis_dataset_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(
+    conn = conn, "
+    SELECT
+      pa.file_fingerprint AS analysis,
+      pd.fingerprint AS dataset
+    FROM
+      (
+        public.analysis_dataset AS pad
+      INNER JOIN
+        public.analysis AS pa
+      ON
+        pad.analysis = pa.id
+      )
+    INNER JOIN
+      public.dataset AS pd
+    ON
+      pad.dataset = pd.id"
+  )
+  expect_equivalent(
+    stored %>%
+      arrange_(~analysis, ~dataset),
+    ut.analysis_dataset %>%
+      arrange_(~analysis, ~dataset)
   )
 
   DBI::dbDisconnect(conn)
