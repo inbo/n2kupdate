@@ -21,11 +21,7 @@ store_analysis_dataset <- function(
   assert_that(has_name(analysis_dataset, "analysis"))
   assert_that(has_name(analysis_dataset, "dataset"))
 
-  factors <- sapply(analysis_dataset, is.factor)
-  if (any(factors)) {
-    analysis_dataset <- analysis_dataset %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  analysis_dataset <- as.character(analysis_dataset)
 
   hash <- sha1(
     list(

@@ -9,11 +9,7 @@ store_dataset <- function(dataset, conn){
   assert_that(has_name(dataset, "datasource"))
   assert_that(has_name(dataset, "import_date"))
 
-  factors <- sapply(dataset, is.factor)
-  if (any(factors)) {
-    dataset <- dataset %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  dataset <- as.character(dataset)
 
   hash <- sha1(
     list(

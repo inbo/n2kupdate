@@ -23,11 +23,7 @@ store_language <- function(language, hash, conn, clean = TRUE){
   assert_that(are_equal(anyDuplicated(language$code), 0L))
   assert_that(are_equal(anyDuplicated(language$description), 0L))
 
-  factors <- sapply(language, is.factor)
-  if (any(factors)) {
-    language <- language %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  language <- as.character(language)
 
   language %>%
     transmute_(

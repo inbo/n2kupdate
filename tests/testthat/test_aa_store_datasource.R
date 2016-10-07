@@ -287,7 +287,7 @@ test_that("it stores updates data correctly", {
       ")
     )
   ut.datasource2 %>%
-    mutate_each_(funs(as.character), vars = colnames(ut.datasource2)) %>%
+    as.character() %>%
     gather_(
       key_col = "parameter",
       value_col = "value",

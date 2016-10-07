@@ -37,11 +37,7 @@ found in species_group_species."
     )
   }
 
-  factors <- sapply(species_group_species, is.factor)
-  if (any(factors)) {
-    species_group_species <- species_group_species %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  species_group_species <- as.character(species_group_species)
 
   hash <- sha1(
     list(

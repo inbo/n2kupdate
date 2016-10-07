@@ -22,6 +22,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
 Collate:
+    'as_character_data_frame.R'
     'class_n2kAnalysisVersion.R'
     'connect_db.R'
     'import_S3_classes.R'

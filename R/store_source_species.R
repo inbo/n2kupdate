@@ -38,11 +38,8 @@ source_species."
     )
   }
 
-  factors <- sapply(source_species, is.factor)
-  if (any(factors)) {
-    source_species <- source_species %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  source_species <- as.character(source_species)
+
   assert_that(all(source_species$datafield_local_id %in% datafield$local_id))
 
   if (missing(hash)) {

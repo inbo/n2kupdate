@@ -31,11 +31,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
     assert_that(is.string(hash))
   }
 
-  factors <- sapply(datafield, is.factor)
-  if (any(factors)) {
-    datafield <- datafield %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  datafield <- as.character(datafield)
 
   datafield_type <- store_datafield_type(
     datafield_type = datafield$datafield_type,

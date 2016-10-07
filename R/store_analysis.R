@@ -35,11 +35,7 @@ store_analysis <- function(
     stop("Duplicated file_fingerprint")
   }
 
-  factors <- sapply(analysis, is.factor)
-  if (any(factors)) {
-    analysis <- analysis %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  analysis <- as.character(analysis)
 
   assert_that(
     all(

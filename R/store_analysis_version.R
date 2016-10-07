@@ -23,21 +23,9 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   rp <- analysis_version@RPackage
   avrp <- analysis_version@AnalysisVersionRPackage
 
-  factors <- sapply(av, is.factor)
-  if (any(factors)) {
-    av <- av %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
-  factors <- sapply(rp, is.factor)
-  if (any(factors)) {
-    rp <- rp %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
-  factors <- sapply(avrp, is.factor)
-  if (any(factors)) {
-    avrp <- avrp %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  av <- as.character(av)
+  rp <- as.character(rp)
+  avrp <- as.character(avrp)
 
   av %>%
     select_(fingerprint = ~Fingerprint) %>%

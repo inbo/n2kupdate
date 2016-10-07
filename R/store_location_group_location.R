@@ -43,11 +43,7 @@ store_location_group_location <- function(
 
   assert_that(are_equal(anyDuplicated(location_group_location), 0L))
 
-  factors <- sapply(location_group_location, is.factor)
-  if (any(factors)) {
-    location_group_location <- location_group_location %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  location_group_location <- as.character(location_group_location)
 
   if (missing(hash)) {
     hash <- sha1(list(

@@ -23,11 +23,7 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
 
   assert_that(are_equal(anyDuplicated(species_group$local_id), 0L))
 
-  factors <- sapply(species_group, is.factor)
-  if (any(factors)) {
-    species_group <- species_group %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  species_group <- as.character(species_group)
 
   staging.species_group <- species_group %>%
     transmute_(

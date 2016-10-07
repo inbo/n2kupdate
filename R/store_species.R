@@ -30,11 +30,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
       stop(" is not available is language$code")
   }
 
-  factors <- sapply(species, is.factor)
-  if (any(factors)) {
-    species <- species %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  species <- as.character(species)
 
   if (missing(hash)) {
     hash <- sha1(list(species, language, as.POSIXct(Sys.time())))

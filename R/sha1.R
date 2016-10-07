@@ -11,21 +11,9 @@ sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L) {
   rp <- x@RPackage
   avrp <- x@AnalysisVersionRPackage
 
-  factors <- sapply(av, is.factor)
-  if (any(factors)) {
-    av <- av %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
-  factors <- sapply(rp, is.factor)
-  if (any(factors)) {
-    rp <- rp %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
-  factors <- sapply(avrp, is.factor)
-  if (any(factors)) {
-    avrp <- avrp %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  av <- as.character(av)
+  rp <- as.character(rp)
+  avrp <- as.character(avrp)
 
   z <- list(
     analysis_version = av %>%

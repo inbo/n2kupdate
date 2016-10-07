@@ -34,11 +34,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
       select_(~local_id, ~description, ~first_year, ~last_year, ~duration)
   ))
 
-  factors <- sapply(model_set, is.factor)
-  if (any(factors)) {
-    model_set <- model_set %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  model_set <- as.character(model_set)
   numbers <- sapply(model_set, is.numeric)
   if (any(numbers)) {
     model_set <- model_set %>%

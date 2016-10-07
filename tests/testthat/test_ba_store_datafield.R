@@ -136,12 +136,8 @@ test_that("it ignores existing data", {
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
 
-  factors <- sapply(ut.datafield, is.factor)
-  if (any(factors)) {
-    ut.datafield <- ut.datafield %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
   ut.datafield %>%
+    as.character() %>%
     select_(~-local_id) %>%
     arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
     expect_identical(

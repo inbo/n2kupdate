@@ -23,11 +23,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
 
   assert_that(are_equal(anyDuplicated(location_group$local_id), 0L))
 
-  factors <- sapply(location_group, is.factor)
-  if (any(factors)) {
-    location_group <- location_group %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  location_group <- as.character(location_group)
 
   staging <- location_group %>%
     transmute_(

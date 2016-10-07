@@ -42,11 +42,8 @@ parent_local_id are found in location."
     )
   }
 
-  factors <- sapply(location, is.factor)
-  if (any(factors)) {
-    location <- location %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  location <- as.character(location)
+
   assert_that(all(location$datafield_local_id %in% datafield$local_id))
 
   assert_that(

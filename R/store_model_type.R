@@ -18,12 +18,7 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
     assert_that(is.string(hash))
   }
 
-  factors <- sapply(model_type, is.factor)
-  if (any(factors)) {
-    model_type <- model_type %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
-
+  model_type <- as.character(model_type)
 
   if (has_name(model_type, "long_description")) {
     model_type <- model_type %>%

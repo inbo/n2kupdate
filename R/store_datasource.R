@@ -16,11 +16,7 @@ store_datasource <- function(datasource, conn){
   assert_that(has_name(datasource, "datasource_type"))
   assert_that(has_name(datasource, "connect_method"))
 
-  factors <- sapply(datasource, is.factor)
-  if (any(factors)) {
-    datasource <- datasource %>%
-      mutate_each_(funs(as.character), vars = names(factors)[factors])
-  }
+  datasource <- as.character(datasource)
 
   hash <- sha1(list(datasource, as.POSIXct(Sys.time())))
   datasource_type <- store_datasource_type(
