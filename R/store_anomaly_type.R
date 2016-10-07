@@ -21,6 +21,8 @@ store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  anomaly_type <- as.character(anomaly_type)
+
   if (!has_name(anomaly_type, "long_description")) {
     anomaly_type <- anomaly_type %>%
       mutate_(long_description = NA)
