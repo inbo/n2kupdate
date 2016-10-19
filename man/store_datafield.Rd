@@ -7,7 +7,7 @@
 store_datafield(datafield, conn, hash, clean = TRUE)
 }
 \arguments{
-\item{datafield}{a data.frame with datafield metadata}
+\item{datafield}{a data.frame with datafield metadata. Must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.}
 
 \item{conn}{a DBIconnection}
 
@@ -17,8 +17,5 @@ store_datafield(datafield, conn, hash, clean = TRUE)
 }
 \description{
 store a datafield in the database
-}
-\details{
-datafield must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
 }
 

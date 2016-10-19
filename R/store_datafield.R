@@ -1,5 +1,5 @@
 #' store a datafield in the database
-#' @param datafield a data.frame with datafield metadata
+#' @param datafield a data.frame with datafield metadata. Must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
 #' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that has_name noNA are_equal is.flag
@@ -7,7 +7,6 @@
 #' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 #' @importFrom tidyr gather_
-#' @details datafield must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.
 store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))

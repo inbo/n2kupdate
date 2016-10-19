@@ -32,6 +32,7 @@ Collate:
     'store_analysis.R'
     'store_analysis_dataset.R'
     'store_analysis_version.R'
+    'store_anomaly.R'
     'store_anomaly_type.R'
     'store_datafield.R'
     'store_datafield_type.R'
