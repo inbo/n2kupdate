@@ -10,7 +10,6 @@
 #' @importFrom tidyr gather_
 store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(inherits(species, "data.frame"))
-  assert_that(inherits(language, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(species, "scientific_name"))
@@ -20,16 +19,6 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(are_equal(anyDuplicated(species$nbn_key), 0L))
   assert_that(are_equal(anyDuplicated(species$local_id), 0L))
 
-  lang.code <- species %>%
-    select_(~-local_id, ~-scientific_name, ~-nbn_key) %>%
-    colnames()
-  if (!all(lang.code %in% language$code)) {
-    lang.code[!lang.code %in% language$code] %>%
-      sprintf(fmt = "'%s'") %>%
-      paste(collapse = ", ") %>%
-      stop(" is not available is language$code")
-  }
-
   species <- as.character(species)
 
   if (missing(hash)) {
@@ -37,12 +26,31 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   } else {
     assert_that(is.string(hash))
   }
-  language.sql <- store_language(
-    language = language,
-    hash = hash,
-    conn = conn,
-    clean = FALSE
+  language.sql <- tryCatch(
+    store_language(
+      language = language,
+      hash = hash,
+      conn = conn,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("language_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
+
+  lang.code <- species %>%
+    select_(~-local_id, ~-scientific_name, ~-nbn_key) %>%
+    colnames()
+  if (!all(lang.code %in% language$code)) {
+    c("staging", paste0("language_", hash)) %>%
+      DBI::dbRemoveTable(conn = conn)
+    lang.code[!lang.code %in% language$code] %>%
+      sprintf(fmt = "'%s'") %>%
+      paste(collapse = ", ") %>%
+      stop(" is not available is language$code")
+  }
 
   sp <- species %>%
     transmute_(

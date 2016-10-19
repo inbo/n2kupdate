@@ -40,20 +40,28 @@ source_species."
 
   source_species <- as.character(source_species)
 
-  assert_that(all(source_species$datafield_local_id %in% datafield$local_id))
-
   if (missing(hash)) {
     hash <- sha1(list(source_species, datafield, as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }
-  store_datafield(
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  tryCatch(
+    store_datafield(
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("datafield_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_type_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
 
+  assert_that(all(source_species$datafield_local_id %in% datafield$local_id))
   datafield.sql <- paste0("datafield_", hash) %>%
     dbQuoteIdentifier(conn = conn)
   source_species <- sprintf("

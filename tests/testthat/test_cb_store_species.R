@@ -196,11 +196,44 @@ test_that("store_source_species works correctly", {
     store_source_species(
       source_species = ut.source_species_dup,
       datafield = ut.datafield,
+      hash = "junk",
       conn = conn
     ),
     "Duplicate combinations of datafield_local_id and external_code are found in
 source_species."
   )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  expect_error(
+    store_source_species(
+      source_species = ut.source_species,
+      datafield = "junk",
+      hash = "junk",
+      conn = conn
+    ),
+    "datafield does not inherit from class data\\.frame"
+  )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
 
   expect_is(
     ss <- store_source_species(
@@ -407,6 +440,26 @@ test_that("store_language() works fine", {
 test_that("store_species() works fine", {
   conn <- connect_db()
 
+  expect_error(
+    spec <- store_species(
+      species = ut.species,
+      language = "junk",
+      hash = "junk",
+      conn = conn
+    ),
+    "language does not inherit from class data\\.frame"
+  )
+  hash <- "junk"
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
   expect_is(
     spec <- store_species(
       species = ut.species,
@@ -529,10 +582,21 @@ test_that("store_species() works fine", {
     store_species(
       species = ut.species3,
       language = ut.language,
+      hash = "junk",
       conn = conn
     ),
     "'junk' is not available is language\\$code"
   )
+  hash <- "junk"
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
 
   DBI::dbDisconnect(conn)
 })
@@ -547,11 +611,68 @@ test_that("store_source_species_species() works fine", {
       source_species = ut.source_species,
       source_species_species = ut.source_species_species_dup,
       datafield = ut.datafield,
+      hash = "junk",
       conn = conn
     ),
     "Duplicate combinations of species_local_id and source_species_local_id are
 found in source_species_species."
   )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  expect_error(
+    store_source_species_species(
+      species = ut.species,
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species,
+      datafield = "junk",
+      hash = "junk",
+      conn = conn
+    ),
+    "datafield does not inherit from class data\\.frame"
+  )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
 
   expect_is(
     staging.species <- store_source_species_species(
@@ -747,6 +868,91 @@ test_that("store_species_group_species() works as expected", {
 
   expect_error(
     store_species_group_species(
+      species = "junk",
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species,
+      datafield = ut.datafield,
+      species_group = ut.species_group,
+      species_group_species = ut.species_group_species,
+      hash = "junk",
+      conn = conn
+    ),
+    "species does not inherit from class data\\.frame"
+  )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_group_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_group_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  expect_error(
+    store_species_group_species(
+      species = ut.species,
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species,
+      datafield = ut.datafield,
+      species_group = "junk",
+      species_group_species = ut.species_group_species,
+      hash = "junk",
+      conn = conn
+    ),
+    "species_group does not inherit from class data\\.frame"
+  )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_group_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_group_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  expect_error(
+    store_species_group_species(
       species = ut.species,
       language = ut.language,
       source_species = ut.source_species,
@@ -754,11 +960,40 @@ test_that("store_species_group_species() works as expected", {
       datafield = ut.datafield,
       species_group = ut.species_group,
       species_group_species = ut.species_group_species_dup,
+      hash = "junk",
       conn = conn
     ),
     "Duplicate combinations of species_local_id and species_group_local_id are
 found in species_group_species."
   )
+  hash <- "junk"
+  c("staging", paste0("datafield", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("source_species_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_group_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_group_species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
 
   expect_is(
     output <- store_species_group_species(

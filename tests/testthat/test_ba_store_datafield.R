@@ -9,6 +9,14 @@ ut.datafield <- data.frame(
   datafield_type = "character",
   stringsAsFactors = FALSE
 )
+ut.datafield_error <- data.frame(
+  local_id = ut,
+  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
+  table_name = ut,
+  primary_key = ut,
+  datafield_type = 123,
+  stringsAsFactors = FALSE
+)
 DBI::dbDisconnect(conn)
 
 test_that("input is suitable", {
@@ -21,6 +29,10 @@ test_that("input is suitable", {
     "conn does not inherit from class DBIConnection"
   )
   conn <- connect_db()
+  expect_error(
+    store_datafield(datafield = ut.datafield_error, conn = conn),
+    "datafield_type is not a character vector"
+  )
   expect_error(
     ut.datafield %>%
       select_(~-local_id) %>%

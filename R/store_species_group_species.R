@@ -18,6 +18,7 @@ store_species_group_species <- function(
   datafield,
   species_group,
   species_group_species,
+  hash,
   conn
 ){
   assert_that(inherits(species_group_species, "data.frame"))
@@ -37,30 +38,75 @@ found in species_group_species."
     )
   }
 
+  if (missing(hash)) {
+    hash <- sha1(
+      list(
+        species, language, source_species, source_species_species, datafield,
+        species_group, species_group_species, as.POSIXct(Sys.time())
+      )
+    )
+  } else {
+    assert_that(is.string(hash))
+  }
+
   species_group_species <- as.character(species_group_species)
 
-  hash <- sha1(
-    list(
-      species, language, source_species, source_species_species, datafield,
-      species_group, species_group_species, as.POSIXct(Sys.time())
-    )
-  )
 
-  staging.species <- store_source_species_species(
-    species = species,
-    language = language,
-    source_species = source_species,
-    source_species_species = source_species_species,
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  staging.species <- tryCatch(
+    store_source_species_species(
+      species = species,
+      language = language,
+      source_species = source_species,
+      source_species_species = source_species_species,
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("species_common_name_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("language_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("source_species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_type_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("source_species_species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
-  staging.species_group <- store_species_group(
-    species_group = species_group,
-    hash = hash,
-    conn = conn,
-    clean = FALSE
+  staging.species_group <- tryCatch(
+    store_species_group(
+      species_group = species_group,
+      hash = hash,
+      conn = conn,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("species_common_name_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("language_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("source_species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_type_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("source_species_species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("species_group", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
 
   assert_that(

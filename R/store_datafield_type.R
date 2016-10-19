@@ -9,7 +9,7 @@
 #' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
-  assert_that(is(datafield_type, "character"))
+  assert_that(is.character(datafield_type))
   assert_that(noNA(datafield_type))
   if (missing(hash)) {
     hash <- sha1(list(datafield_type, as.POSIXct(Sys.time())))

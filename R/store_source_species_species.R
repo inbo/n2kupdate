@@ -49,19 +49,47 @@ found in source_species_species."
     assert_that(is.string(hash))
   }
 
-  staging.species <- store_species(
-    species = species,
-    language = language,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  staging.species <- tryCatch(
+    store_species(
+      species = species,
+      language = language,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("species_common_name_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("language_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
-  staging.source_species <- store_source_species(
-    source_species = source_species,
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  staging.source_species <- tryCatch(
+    store_source_species(
+      source_species = source_species,
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("species_common_name_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("language_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("source_species_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      c("staging", paste0("datafield_type", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
 
   assert_that(

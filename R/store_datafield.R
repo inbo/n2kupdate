@@ -32,11 +32,18 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
 
   datafield <- as.character(datafield)
 
-  datafield_type <- store_datafield_type(
-    datafield_type = datafield$datafield_type,
-    hash = hash,
-    conn = conn,
-    clean = FALSE
+  datafield_type <- tryCatch(
+    store_datafield_type(
+      datafield_type = datafield$datafield_type,
+      hash = hash,
+      conn = conn,
+      clean = FALSE
+    ),
+    error = function(e){
+      c("staging", paste0("datafield_type_", hash)) %>%
+        DBI::dbRemoveTable(conn = conn)
+      stop(e)
+    }
   )
 
   df <- datafield %>%

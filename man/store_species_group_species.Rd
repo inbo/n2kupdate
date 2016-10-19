@@ -5,7 +5,8 @@
 \title{store all species related information in the database}
 \usage{
 store_species_group_species(species, language, source_species,
-  source_species_species, datafield, species_group, species_group_species, conn)
+  source_species_species, datafield, species_group, species_group_species, hash,
+  conn)
 }
 \arguments{
 \item{species}{a data.frame with species metadata. Must contain at least local_id, scientific_name and nbn_key. Other variable names must match the values in language$code..}
@@ -21,6 +22,8 @@ store_species_group_species(species, language, source_species,
 \item{species_group}{the data.frame with species groups. Must contains local_id, description and scheme. Other variables are ignored. local_id must have unique values.}
 
 \item{species_group_species}{as data.frame linking the local species group id to the local species id. Must contain variables species_local_id and species_group_local_id. Other variables are ignored.}
+
+\item{hash}{the hash of the update session}
 
 \item{conn}{a DBIconnection}
 }
