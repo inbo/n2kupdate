@@ -82,7 +82,10 @@ store_anomaly <- function(
       ) %>%
       inner_join(
         anomaly_type %>%
-          select_(anomaly_type_local_id = ~local_id, anomaly_type = ~fingerprint),
+          select_(
+            anomaly_type_local_id = ~local_id,
+            anomaly_type = ~fingerprint
+          ),
         by = "anomaly_type_local_id"
       ) %>%
     select_(
