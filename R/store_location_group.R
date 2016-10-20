@@ -25,6 +25,10 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
 
   location_group <- as.character(location_group)
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   staging <- location_group %>%
     transmute_(
       id = ~NA_integer_,
@@ -86,6 +90,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("location_group_", hash)))
+    dbCommit(conn)
   }
 
   attr(staging, "hash") <- hash

@@ -8,7 +8,7 @@
 #' @importFrom methods is
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% anti_join rowwise mutate_ select_ arrange_
-#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
+#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbCommit dbBegin
 store_anomaly <- function(
   anomaly,
   anomaly_type,
@@ -41,11 +41,23 @@ store_anomaly <- function(
       mutate_(parameter = NA_integer_)
   }
 
-  datafield <- store_datafield(
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  if (clean) {
+    dbBegin(conn)
+  }
+
+  datafield <- tryCatch(
+    store_datafield(
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
   nolink <- anomaly %>%
     anti_join(
@@ -54,13 +66,24 @@ store_anomaly <- function(
     ) %>%
     nrow()
   if (nolink > 0) {
+    if (clean) {
+      dbRollback(conn)
+    }
     stop("All anomaly$datafield_local_id must be present in datafield$local_id")
   }
-  anomaly_type <- store_anomaly_type(
-    anomaly_type = anomaly_type,
-    hash = hash,
-    conn = conn,
-    clean = FALSE
+  anomaly_type <- tryCatch(
+    store_anomaly_type(
+      anomaly_type = anomaly_type,
+      hash = hash,
+      conn = conn,
+      clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
   nolink <- anomaly %>%
     anti_join(
@@ -69,6 +92,9 @@ store_anomaly <- function(
     ) %>%
     nrow()
   if (nolink > 0) {
+    if (clean) {
+      dbRollback(conn)
+    }
     stop(
 "All anomaly$anomaly_type_local_id must be present in anomaly_type$local_id"
     )
@@ -155,6 +181,7 @@ store_anomaly <- function(
     dbRemoveTable(conn, c("staging", paste0("anomaly_type_", hash)))
     dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
     dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbCommit(conn)
   }
 
   attr(anomaly, "SQL") <- anomaly.sql

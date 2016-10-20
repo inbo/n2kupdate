@@ -7,7 +7,7 @@
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
-#' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
+#' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_source_species_species <- function(
   species,
@@ -49,6 +49,12 @@ found in source_species_species."
     assert_that(is.string(hash))
   }
 
+  assert_that(is.flag(clean))
+  assert_that(noNA(clean))
+  if (clean) {
+    dbBegin(conn)
+  }
+
   staging.species <- tryCatch(
     store_species(
       species = species,
@@ -58,12 +64,9 @@ found in source_species_species."
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("species_common_name_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("language_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -76,18 +79,9 @@ found in source_species_species."
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("species_common_name_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("language_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("source_species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_type", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -230,15 +224,14 @@ found in source_species_species."
     dbGetQuery(conn = conn)
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(conn, c("staging", paste0("datafield_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("species_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("language_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("source_species_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("source_species_species_", hash)))
-    )
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("language_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("source_species_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("source_species_species_", hash)))
+    dbCommit(conn)
   }
 
   attr(staging.species, "hash") <- hash

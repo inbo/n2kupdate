@@ -13,7 +13,7 @@ store_species_group(species_group, hash, conn, clean = TRUE)
 
 \item{conn}{a DBIconnection}
 
-\item{clean}{remove the staging table after update. Defaults to TRUE}
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
 }
 \description{
 Store species groups

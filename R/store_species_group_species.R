@@ -10,6 +10,7 @@
 #' @importFrom assertthat assert_that has_name noNA
 #' @importFrom dplyr %>% select_ mutate_each_ funs inner_join
 #' @importFrom digest sha1
+#' @importFrom DBI dbBegin dbCommit dbRollback
 store_species_group_species <- function(
   species,
   language,
@@ -19,7 +20,8 @@ store_species_group_species <- function(
   species_group,
   species_group_species,
   hash,
-  conn
+  conn,
+  clean = TRUE
 ){
   assert_that(inherits(species_group_species, "data.frame"))
 
@@ -51,7 +53,9 @@ found in species_group_species."
 
   species_group_species <- as.character(species_group_species)
 
-
+  if (clean) {
+    dbBegin(conn)
+  }
   staging.species <- tryCatch(
     store_source_species_species(
       species = species,
@@ -64,20 +68,9 @@ found in species_group_species."
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("species_common_name_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("language_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("source_species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_type_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("source_species_species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -89,22 +82,9 @@ found in species_group_species."
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("species_common_name_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("language_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("source_species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_type_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("source_species_species_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("species_group", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -245,18 +225,18 @@ found in species_group_species."
   ) %>%
     dbGetQuery(conn = conn)
 
-
-  stopifnot(
-    dbRemoveTable(conn, c("staging", paste0("datafield_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("species_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("language_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("source_species_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("source_species_species_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("species_group_", hash))),
+  if (clean) {
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("language_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("source_species_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("source_species_species_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_group_", hash)))
     dbRemoveTable(conn, c("staging", paste0("species_group_species_", hash)))
-  )
+    dbCommit(conn)
+  }
 
   output <- list(
     species = staging.species,

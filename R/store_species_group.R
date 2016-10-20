@@ -25,6 +25,10 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
 
   species_group <- as.character(species_group)
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   staging.species_group <- species_group %>%
     transmute_(
       id = ~NA_integer_,
@@ -87,6 +91,7 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
 
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("species_group_", hash)))
+    dbCommit(conn)
   }
 
   attr(staging.species_group, "hash") <- hash

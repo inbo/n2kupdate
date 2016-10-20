@@ -29,6 +29,10 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
       mutate_(long_description = ~NA_character_)
   }
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   staging <- model_type %>%
     mutate_(id = ~NA_integer_) %>%
     rowwise() %>%
@@ -101,6 +105,7 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("model_type_", hash)))
+    dbCommit(conn)
   }
 
   staging <- staging %>%

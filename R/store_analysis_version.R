@@ -7,7 +7,7 @@
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join
 #'   mutate_each_ funs
-#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
+#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable dbBegin dbCommit
 store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   assert_that(inherits(analysis_version, "n2kAnalysisVersion"))
   assert_that(inherits(conn, "DBIConnection"))
@@ -26,6 +26,10 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   av <- as.character(av)
   rp <- as.character(rp)
   avrp <- as.character(avrp)
+
+  if (clean) {
+    dbBegin(conn)
+  }
 
   av %>%
     select_(fingerprint = ~Fingerprint) %>%
@@ -137,6 +141,7 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
     dbRemoveTable(conn, c("staging", paste0("analysis_version_", hash)))
     dbRemoveTable(conn, c("staging", paste0("r_package_", hash)))
     dbRemoveTable(conn, c("staging", paste0("avrp_", hash)))
+    dbCommit(conn)
   }
 
   return(hash)

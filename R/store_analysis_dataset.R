@@ -9,12 +9,15 @@
 #' @importFrom assertthat assert_that has_name
 #' @importFrom dplyr %>% mutate_each_ funs distinct_ arrange_
 #' @importFrom digest sha1
+#' @importFrom DBI dbBegin dbCommit dbRollback dbWriteTable dbGetQuery
 store_analysis_dataset <- function(
   analysis,
   model_set,
   analysis_version,
   dataset,
   analysis_dataset,
+  clean = TRUE,
+  hash,
   conn
 ) {
   assert_that(inherits(analysis_dataset, "data.frame"))
@@ -23,24 +26,49 @@ store_analysis_dataset <- function(
 
   analysis_dataset <- as.character(analysis_dataset)
 
-  hash <- sha1(
-    list(
-      analysis, model_set, analysis_version, dataset, analysis_dataset,
-      as.POSIXct(Sys.time())
+  if (missing(hash)) {
+    hash <- sha1(
+      list(
+        analysis, model_set, analysis_version, dataset, analysis_dataset,
+        as.POSIXct(Sys.time())
+      )
     )
-  )
+  } else {
+    assert_that(is.string(hash))
+  }
 
-  store_analysis(
-    analysis = analysis,
-    model_set = model_set,
-    analysis_version = analysis_version,
-    hash = hash,
-    clean = TRUE,
-    conn = conn
+  if (clean) {
+    dbBegin(conn)
+  }
+
+  tryCatch(
+    store_analysis(
+      analysis = analysis,
+      model_set = model_set,
+      analysis_version = analysis_version,
+      hash = hash,
+      clean = FALSE,
+      conn = conn
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
-  store_dataset(
-    dataset = dataset,
-    conn = conn
+  tryCatch(
+    store_dataset(
+      dataset = dataset,
+      conn = conn,
+      clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
 
   assert_that(all(analysis_dataset$analysis %in% analysis$file_fingerprint))
@@ -91,9 +119,18 @@ store_analysis_dataset <- function(
   ) %>%
     dbGetQuery(conn = conn)
 
-  stopifnot(
+  if (clean) {
+    dbRemoveTable(conn, c("staging", paste0("analysis_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("analysis_version_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("avrp_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("model_set_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("model_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("r_package_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("status_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("dataset_", hash)))
     dbRemoveTable(conn, c("staging", paste0("analysis_dataset_", hash)))
-  )
+    dbCommit(conn)
+  }
 
   return(hash)
 }

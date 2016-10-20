@@ -4,12 +4,16 @@
 \alias{store_dataset}
 \title{Store a dataset is the database}
 \usage{
-store_dataset(dataset, conn)
+store_dataset(dataset, conn, clean = TRUE, hash)
 }
 \arguments{
 \item{dataset}{a data.frame with names fingerprint, filename, datasource and import_date}
 
 \item{conn}{a DBIconnection}
+
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
+
+\item{hash}{the hash of the update session}
 }
 \description{
 Store a dataset is the database

@@ -32,6 +32,10 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
 
   datafield <- as.character(datafield)
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   datafield_type <- tryCatch(
     store_datafield_type(
       datafield_type = datafield$datafield_type,
@@ -40,8 +44,9 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("datafield_type_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -132,10 +137,9 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
     dbGetQuery(conn = conn)
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(conn, c("staging", paste0("datafield_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
-    )
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbCommit(conn)
   }
 
   df <- df %>%

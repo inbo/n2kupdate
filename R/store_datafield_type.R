@@ -7,7 +7,7 @@
 #' @importFrom digest sha1
 #' @importFrom dplyr data_frame %>% rowwise mutate_ select_
 #' @importFrom digest sha1
-#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
+#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
   assert_that(is.character(datafield_type))
   assert_that(noNA(datafield_type))
@@ -20,6 +20,9 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  if (clean) {
+    dbBegin(conn)
+  }
   dft <- data_frame(
     description = sort(unique(datafield_type)),
     id = NA_integer_
@@ -71,6 +74,7 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbCommit(conn)
   }
 
   dft <- dft %>%

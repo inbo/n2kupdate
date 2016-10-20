@@ -56,12 +56,23 @@ store_location_group_location <- function(
   } else {
     assert_that(is.string(hash))
   }
-  location <- store_location(
-    location = location,
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  if (clean) {
+    dbBegin(conn)
+  }
+  location <- tryCatch(
+    store_location(
+      location = location,
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
   location.sql <- paste0("location_", hash) %>%
     dbQuoteIdentifier(conn = conn)
@@ -195,28 +206,12 @@ store_location_group_location <- function(
     dbGetQuery(conn = conn)
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(
-        conn,
-        c("staging", paste0("datafield_", hash))
-      ),
-      dbRemoveTable(
-        conn,
-        c("staging", paste0("datafield_type_", hash))
-      ),
-      dbRemoveTable(
-        conn,
-        c("staging", paste0("location_", hash))
-      ),
-      dbRemoveTable(
-        conn,
-        c("staging", paste0("location_group_", hash))
-      ),
-      dbRemoveTable(
-        conn,
-        c("staging", paste0("lgl_", hash))
-      )
-    )
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("location_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("location_group_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("lgl_", hash)))
+    dbCommit(conn)
   }
 
   return(staging.location_group)

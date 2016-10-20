@@ -6,7 +6,7 @@
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
-#' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
+#' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_analysis <- function(
   analysis,
@@ -54,26 +54,55 @@ store_analysis <- function(
     assert_that(is.string(hash))
   }
 
-  staging.model_set <- store_model_set(
-    model_set = model_set,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  assert_that(is.flag(clean))
+  assert_that(noNA(clean))
+
+  if (clean) {
+    dbBegin(conn)
+  }
+
+  staging.model_set <- tryCatch(
+    store_model_set(
+      model_set = model_set,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
   assert_that(
     all(analysis$model_set_local_id %in% staging.model_set$local_id)
   )
-  store_analysis_version(
-    analysis_version = analysis_version,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+  tryCatch(
+    store_analysis_version(
+      analysis_version = analysis_version,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
+    ),
+    error = function(e){
+      dbRollback(conn)
+      stop(e)
+    }
   )
-  staging.status <- store_status(
-    status = analysis$status,
-    clean = FALSE,
-    hash = hash,
-    conn = conn
+  staging.status <- tryCatch(
+    store_status(
+      status = analysis$status,
+      clean = FALSE,
+      hash = hash,
+      conn = conn
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
   staging.model_set %>%
     select_(~local_id, model_set = ~fingerprint) %>%
@@ -158,15 +187,14 @@ store_analysis <- function(
     dbGetQuery(conn = conn)
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(conn, c("staging", paste0("analysis_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("analysis_version_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("avrp_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("model_set_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("model_type_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("r_package_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("status_", hash)))
-    )
+    dbRemoveTable(conn, c("staging", paste0("analysis_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("analysis_version_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("avrp_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("model_set_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("model_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("r_package_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("status_", hash)))
+    dbCommit(conn)
   }
 
   return(hash)

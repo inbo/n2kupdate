@@ -2,7 +2,7 @@
 #' @param dataset a data.frame with names fingerprint, filename, datasource and import_date
 #' @inheritParams store_datasource_parameter
 #' @export
-store_dataset <- function(dataset, conn){
+store_dataset <- function(dataset, conn, clean = TRUE, hash){
   assert_that(inherits(dataset, "data.frame"))
   assert_that(has_name(dataset, "fingerprint"))
   assert_that(has_name(dataset, "filename"))
@@ -11,11 +11,22 @@ store_dataset <- function(dataset, conn){
 
   dataset <- as.character(dataset)
 
-  hash <- sha1(
-    list(
-      dataset, as.POSIXct(Sys.time())
+  if (missing(hash)) {
+    hash <- sha1(
+      list(
+        dataset, as.POSIXct(Sys.time())
+      )
     )
-  )
+  } else {
+    assert_that(is.string(hash))
+  }
+
+  assert_that(is.flag(clean))
+  assert_that(noNA(clean))
+
+  if (clean) {
+    dbBegin(conn)
+  }
 
   dataset %>%
     arrange_(~fingerprint) %>%
@@ -56,8 +67,10 @@ store_dataset <- function(dataset, conn){
   ) %>%
     dbGetQuery(conn = conn)
 
-  stopifnot(
-    dbRemoveTable(conn = conn, c("staging", paste0("dataset_", hash)))
-  )
+  if (clean) {
+    dbRemoveTable(conn, c("staging", paste0("dataset_", hash)))
+    dbCommit(conn)
+  }
+
   return(hash)
 }

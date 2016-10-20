@@ -26,6 +26,9 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   } else {
     assert_that(is.string(hash))
   }
+  if (clean) {
+    dbBegin(conn)
+  }
   language.sql <- tryCatch(
     store_language(
       language = language,
@@ -34,8 +37,9 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("language_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -44,8 +48,9 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
     select_(~-local_id, ~-scientific_name, ~-nbn_key) %>%
     colnames()
   if (!all(lang.code %in% language$code)) {
-    c("staging", paste0("language_", hash)) %>%
-      DBI::dbRemoveTable(conn = conn)
+    if (clean) {
+      dbRollback(conn)
+    }
     lang.code[!lang.code %in% language$code] %>%
       sprintf(fmt = "'%s'") %>%
       paste(collapse = ", ") %>%
@@ -222,11 +227,10 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
     dbGetQuery(conn = conn)
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(conn, c("staging", paste0("language_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("species_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash)))
-    )
+    dbRemoveTable(conn, c("staging", paste0("language_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("species_common_name_", hash)))
+    dbCommit(conn)
   }
   sp %>%
     select_(~-id)

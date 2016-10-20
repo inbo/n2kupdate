@@ -58,11 +58,23 @@ parent_local_id are found in location."
   } else {
     assert_that(is.string(hash))
   }
-  store_datafield(
+
+  if (clean) {
+    dbBegin(conn)
+  }
+  tryCatch(
+    store_datafield(
     datafield = datafield,
     conn = conn,
     hash = hash,
     clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
 
   datafield.sql <- paste0("datafield_", hash) %>%
@@ -257,11 +269,10 @@ parent_local_id are found in location."
   }
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(conn, c("staging", paste0("datafield_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("location_", hash)))
-    )
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("location_", hash)))
+    dbCommit(conn)
   }
 
   attr(location, "hash") <- hash

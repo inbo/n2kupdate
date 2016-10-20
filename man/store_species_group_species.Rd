@@ -6,7 +6,7 @@
 \usage{
 store_species_group_species(species, language, source_species,
   source_species_species, datafield, species_group, species_group_species, hash,
-  conn)
+  conn, clean = TRUE)
 }
 \arguments{
 \item{species}{a data.frame with species metadata. Must contain at least local_id, scientific_name and nbn_key. Other variable names must match the values in language$code..}
@@ -26,6 +26,8 @@ store_species_group_species(species, language, source_species,
 \item{hash}{the hash of the update session}
 
 \item{conn}{a DBIconnection}
+
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
 }
 \description{
 store all species related information in the database

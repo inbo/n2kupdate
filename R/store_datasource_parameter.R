@@ -2,7 +2,7 @@
 #' @param datasource_parameter the vector with datasource parameters.
 #' @param hash the hash of the update session
 #' @param conn a DBIconnection
-#' @param clean remove the staging table after update. Defaults to TRUE
+#' @param clean perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
@@ -26,6 +26,9 @@ store_datasource_parameter <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  if (clean) {
+    dbBegin(conn)
+  }
   dsp <- data_frame(
     description = sort(unique(datasource_parameter)),
     id = NA_integer_
@@ -77,6 +80,7 @@ store_datasource_parameter <- function(
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash)))
+    dbCommit(conn)
   }
 
   dsp <- dsp %>%

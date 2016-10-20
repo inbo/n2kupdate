@@ -19,7 +19,7 @@ store_analysis(analysis, model_set, analysis_version, conn, hash,
 
 \item{hash}{the hash of the update session}
 
-\item{clean}{remove the staging table after update. Defaults to TRUE}
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
 }
 \description{
 store source species in the database

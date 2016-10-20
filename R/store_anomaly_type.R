@@ -6,7 +6,7 @@
 #' @importFrom methods is
 #' @importFrom digest sha1
 #' @importFrom dplyr %>% rowwise mutate_ select_ arrange_
-#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
+#' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
   assert_that(inherits(anomaly_type, "data.frame"))
   assert_that(has_name(anomaly_type, "local_id"))
@@ -35,6 +35,9 @@ store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
     arrange_(~fingerprint)
   assert_that(anyDuplicated(anomaly_type$fingerprint) == 0L)
 
+  if (clean) {
+    dbBegin(conn)
+  }
   anomaly_type %>%
     as.data.frame() %>%
     dbWriteTable(
@@ -77,6 +80,7 @@ store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("anomaly_type_", hash)))
+    dbCommit(conn)
   }
 
   attr(anomaly_type, "SQL") <- anomaly_type.sql

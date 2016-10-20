@@ -12,7 +12,7 @@ store_analysis_version(analysis_version, hash, clean = TRUE, conn)
 
 \item{hash}{the hash of the update session}
 
-\item{clean}{remove the staging table after update. Defaults to TRUE}
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
 
 \item{conn}{a DBIconnection}
 }

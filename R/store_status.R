@@ -24,6 +24,10 @@ store_status <- function(status, hash, clean = TRUE, conn){
 
   status <- unique(status)
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   staging <- data.frame(
     id = NA_integer_,
     description = status,
@@ -77,6 +81,7 @@ store_status <- function(status, hash, clean = TRUE, conn){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("status_", hash)))
+    dbCommit(conn)
   }
 
   staging <- staging %>%

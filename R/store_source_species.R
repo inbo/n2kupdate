@@ -45,6 +45,9 @@ source_species."
   } else {
     assert_that(is.string(hash))
   }
+  if (clean) {
+    dbBegin(conn)
+  }
   tryCatch(
     store_datafield(
       datafield = datafield,
@@ -53,10 +56,9 @@ source_species."
       clean = FALSE
     ),
     error = function(e){
-      c("staging", paste0("datafield_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
-      c("staging", paste0("datafield_type_", hash)) %>%
-        DBI::dbRemoveTable(conn = conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
@@ -175,11 +177,10 @@ source_species."
     dbGetQuery(conn = conn)
 
   if (clean) {
-    stopifnot(
-      dbRemoveTable(conn, c("staging", paste0("datafield_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash))),
-      dbRemoveTable(conn, c("staging", paste0("source_species_", hash)))
-    )
+    dbRemoveTable(conn, c("staging", paste0("datafield_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datafield_type_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("source_species_", hash)))
+    dbCommit(conn)
   }
 
   attr(source_species, "hash") <- hash

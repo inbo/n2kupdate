@@ -40,22 +40,41 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
     model_set <- model_set %>%
       mutate_each_(funs(as.integer), vars = names(numbers)[numbers])
   }
+  if (clean) {
+    dbBegin(conn)
+  }
 
   if (has_name(model_set, "long_description")) {
-    model_type <- store_model_type(
-      model_set %>%
-        select_(~description, ~long_description),
-      hash = hash,
-      clean = FALSE,
-      conn = conn
+    model_type <- tryCatch(
+      store_model_type(
+        model_set %>%
+          select_(~description, ~long_description),
+        hash = hash,
+        clean = FALSE,
+        conn = conn
+      ),
+      error = function(e){
+        if (clean) {
+          dbRollback(conn)
+        }
+        stop(e)
+      }
     )
   } else {
-    model_type <- store_model_type(
-      model_set %>%
-        select_(~description),
-      hash = hash,
-      clean = FALSE,
-      conn = conn
+    model_type <- tryCatch(
+      store_model_type(
+        model_set %>%
+          select_(~description),
+        hash = hash,
+        clean = FALSE,
+        conn = conn
+      ),
+      error = function(e){
+        if (clean) {
+          dbRollback(conn)
+        }
+        stop(e)
+      }
     )
   }
 
@@ -142,6 +161,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("model_type_", hash)))
     dbRemoveTable(conn, c("staging", paste0("model_set_", hash)))
+    dbCommit(conn)
   }
 
   staging <- staging %>%

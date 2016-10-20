@@ -5,7 +5,7 @@
 \title{store analysis and dataset in the database}
 \usage{
 store_analysis_dataset(analysis, model_set, analysis_version, dataset,
-  analysis_dataset, conn)
+  analysis_dataset, clean = TRUE, hash, conn)
 }
 \arguments{
 \item{analysis}{as data.frame with file_fingerprint, model_set_local_id, location_group, species_group, last_year, seed, analysis_version, analysis_date, status and status_fingerprint.}
@@ -18,6 +18,10 @@ store_analysis_dataset(analysis, model_set, analysis_version, dataset,
 \item{dataset}{a data.frame with names fingerprint, filename, datasource and import_date}
 
 \item{analysis_dataset}{A \code{data.frame} linking the \code{file_fingerprint} from \code{analysis} to the \code{fingerprint} from \code{dataset}.}
+
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
+
+\item{hash}{the hash of the update session}
 
 \item{conn}{a DBIconnection}
 }

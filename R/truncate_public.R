@@ -5,6 +5,7 @@
 truncate_public <- function(conn){
   assert_that(inherits(conn, "DBIConnection"))
 
+  dbBegin(conn)
   c(
     "analysis", "analysis_dataset", "analysis_relation", "analysis_version",
     "analysis_version_r_package", "anomaly", "anomaly_type",
@@ -21,4 +22,5 @@ truncate_public <- function(conn){
     paste(collapse = ", ") %>%
     sprintf(fmt = "TRUNCATE TABLE %s") %>%
     dbGetQuery(conn = conn)
+  dbCommit(conn)
 }

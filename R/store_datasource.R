@@ -8,7 +8,7 @@
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
-store_datasource <- function(datasource, conn){
+store_datasource <- function(datasource, conn, clean = TRUE, hash){
   assert_that(inherits(datasource, "data.frame"))
   assert_that(inherits(conn, "DBIConnection"))
 
@@ -16,14 +16,33 @@ store_datasource <- function(datasource, conn){
   assert_that(has_name(datasource, "datasource_type"))
   assert_that(has_name(datasource, "connect_method"))
 
+  assert_that(is.flag(clean))
+  assert_that(noNA(clean))
+
   datasource <- as.character(datasource)
 
-  hash <- sha1(list(datasource, as.POSIXct(Sys.time())))
-  datasource_type <- store_datasource_type(
-    datasource_type = datasource$datasource_type,
-    hash = hash,
-    conn = conn,
-    clean = FALSE
+  if (missing(hash)) {
+    hash <- sha1(list(datasource, as.POSIXct(Sys.time())))
+  } else {
+    assert_that(is.string(hash))
+  }
+
+  if (clean) {
+    dbBegin(conn)
+  }
+  datasource_type <- tryCatch(
+    store_datasource_type(
+      datasource_type = datasource$datasource_type,
+      hash = hash,
+      conn = conn,
+      clean = FALSE
+    ),
+    error = function(e){
+      if (clean) {
+        dbRollback(conn)
+      }
+      stop(e)
+    }
   )
   datasource_parameters <- datasource %>%
     select_(~-description, ~-datasource_type) %>%
@@ -238,11 +257,12 @@ store_datasource <- function(datasource, conn){
   ) %>%
     dbGetQuery(conn = conn)
 
-  stopifnot(
-    dbRemoveTable(conn, c("staging", paste0("datasource_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("datasource_value_", hash))),
-    dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash))),
+  if (clean) {
+    dbRemoveTable(conn, c("staging", paste0("datasource_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datasource_value_", hash)))
+    dbRemoveTable(conn, c("staging", paste0("datasource_parameter_", hash)))
     dbRemoveTable(conn, c("staging", paste0("datasource_type_", hash)))
-  )
+    dbCommit(conn)
+  }
   return(hash)
 }

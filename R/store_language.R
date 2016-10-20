@@ -20,6 +20,10 @@ store_language <- function(language, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   assert_that(are_equal(anyDuplicated(language$code), 0L))
   assert_that(are_equal(anyDuplicated(language$description), 0L))
 
@@ -78,6 +82,7 @@ store_language <- function(language, hash, conn, clean = TRUE){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("language_", hash)))
+    dbCommit(conn)
   }
   return(language)
 }

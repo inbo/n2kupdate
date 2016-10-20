@@ -4,12 +4,16 @@
 \alias{store_datasource}
 \title{store a datasource in the database}
 \usage{
-store_datasource(datasource, conn)
+store_datasource(datasource, conn, clean = TRUE, hash)
 }
 \arguments{
 \item{datasource}{a data.frame with datasource metadata}
 
 \item{conn}{a DBIconnection}
+
+\item{clean}{perform all database operations within a transaction and clean up the staging tables. Defaults to TRUE.}
+
+\item{hash}{the hash of the update session}
 }
 \description{
 store a datasource in the database

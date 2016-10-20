@@ -20,6 +20,10 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
+  if (clean) {
+    dbBegin(conn)
+  }
+
   ds <- data_frame(
     description = sort(unique(scheme)),
     id = NA_integer_
@@ -71,6 +75,7 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
     dbGetQuery(conn = conn)
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("scheme_", hash)))
+    dbCommit(conn)
   }
 
   ds <- ds %>%
