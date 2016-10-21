@@ -61,6 +61,7 @@ store_analysis_dataset <- function(
     store_dataset(
       dataset = dataset,
       conn = conn,
+      hash = hash,
       clean = FALSE
     ),
     error = function(e){

@@ -650,7 +650,7 @@ test_that("store_analysis() works", {
       arrange_(~file_fingerprint)
   )
 
-    expect_is(
+  expect_is(
     hash <- store_analysis(
       analysis = ut.analysis2,
       model_set = ut.model_set,
@@ -817,6 +817,30 @@ test_that("store_analysis_dataset works", {
     ),
     "character"
   )
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("dataset_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
   c("staging", paste0("analysis_dataset_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
@@ -857,6 +881,30 @@ test_that("store_analysis_dataset works", {
     ),
     "character"
   )
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("dataset_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
   c("staging", paste0("analysis_dataset_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
