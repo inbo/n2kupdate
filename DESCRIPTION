@@ -46,6 +46,7 @@ Collate:
     'store_location_group_location.R'
     'store_model_set.R'
     'store_model_type.R'
+    'store_parameter.R'
     'store_scheme.R'
     'store_source_species.R'
     'store_source_species_species.R'
