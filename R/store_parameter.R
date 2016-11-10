@@ -8,6 +8,7 @@
 #' @importFrom dplyr data_frame %>% rowwise mutate_ right_join
 #' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
+#' @importFrom stats na.omit
 store_parameter <- function(parameter, hash, conn, clean = TRUE){
   assert_that(inherits(parameter, "data.frame"))
   assert_that(has_name(parameter, "local_id"))

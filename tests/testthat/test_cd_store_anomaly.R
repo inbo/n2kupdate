@@ -19,28 +19,38 @@ ut.datafield <- data.frame(
   datafield_type = "character",
   stringsAsFactors = FALSE
 )
+ut.parameter <- data.frame(
+  local_id = ut,
+  description = ut,
+  parent_parameter_local_id = NA,
+  stringsAsFactors = FALSE
+)
 ut.anomaly <- data.frame(
   anomaly_type_local_id = ut,
   datafield_local_id = ut,
   analysis = ut,
+  parameter_local_id = ut,
   stringsAsFactors = FALSE
 )
 ut.anomaly2 <- data.frame(
   anomaly_type_local_id = ut,
   datafield_local_id = ut,
   analysis = ut,
+  parameter_local_id = ut,
   stringsAsFactors = TRUE
 )
 ut.anomaly_wrong <- data.frame(
   anomaly_type_local_id = "junk",
   datafield_local_id = ut,
   analysis = ut,
+  parameter_local_id = ut,
   stringsAsFactors = FALSE
 )
 ut.anomaly_wrong2 <- data.frame(
   anomaly_type_local_id = ut,
   datafield_local_id = "junk",
   analysis = ut,
+  parameter_local_id = ut,
   stringsAsFactors = FALSE
 )
 DBI::dbDisconnect(conn)
@@ -120,7 +130,7 @@ test_that("store_anomaly_type() works", {
   DBI::dbDisconnect(conn)
 })
 
-test_that("store_anomaly() works without parameters", {
+test_that("store_anomaly() works", {
   conn <- connect_db()
 
   expect_error(
@@ -128,6 +138,7 @@ test_that("store_anomaly() works without parameters", {
       anomaly = ut.anomaly_wrong,
       anomaly_type = ut.anomaly_type,
       datafield = ut.datafield,
+      parameter = ut.parameter,
       conn = conn
     ),
 "All anomaly\\$anomaly_type_local_id must be present in anomaly_type\\$local_id"
@@ -137,6 +148,7 @@ test_that("store_anomaly() works without parameters", {
       anomaly = ut.anomaly_wrong2,
       anomaly_type = ut.anomaly_type,
       datafield = ut.datafield,
+      parameter = ut.parameter,
       conn = conn
     ),
     "All anomaly\\$datafield_local_id must be present in datafield\\$local_id"
@@ -147,6 +159,7 @@ test_that("store_anomaly() works without parameters", {
       anomaly = ut.anomaly,
       anomaly_type = ut.anomaly_type,
       datafield = ut.datafield,
+      parameter = ut.parameter,
       conn = conn
     ),
     "data.frame"
@@ -167,6 +180,9 @@ test_that("store_anomaly() works without parameters", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("parameter_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   stored <- dbGetQuery(
@@ -225,6 +241,7 @@ test_that("store_anomaly() works without parameters", {
       anomaly = ut.anomaly2,
       anomaly_type = ut.anomaly_type,
       datafield = ut.datafield,
+      parameter = ut.parameter,
       hash = "junk",
       clean = FALSE,
       conn = conn
@@ -249,6 +266,9 @@ test_that("store_anomaly() works without parameters", {
   c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
+  c("staging", paste0("parameter_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
   c("staging", paste0("anomaly_", hash)) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
@@ -259,6 +279,9 @@ test_that("store_anomaly() works without parameters", {
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   c("staging", paste0("datafield_type_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("parameter_", hash)) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   stored <- dbGetQuery(
