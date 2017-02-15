@@ -86,7 +86,9 @@ store_analysis <- function(
       clean = FALSE
     ),
     error = function(e){
-      dbRollback(conn)
+      if (clean) {
+        dbRollback(conn)
+      }
       stop(e)
     }
   )
