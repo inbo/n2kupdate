@@ -20,4 +20,3 @@ store_source_species(source_species, datafield, conn, hash, clean = TRUE)
 \description{
 store source species in the database
 }
-

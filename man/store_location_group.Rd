@@ -18,4 +18,3 @@ store_location_group(location_group, hash, conn, clean = TRUE)
 \description{
 Store location groups
 }
-

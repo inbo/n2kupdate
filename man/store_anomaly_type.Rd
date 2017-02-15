@@ -18,4 +18,3 @@ store_anomaly_type(anomaly_type, hash, conn, clean = TRUE)
 \description{
 Store anomaly types
 }
-

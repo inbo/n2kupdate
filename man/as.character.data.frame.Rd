@@ -14,4 +14,3 @@
 \description{
 Convert all factors in a data.frame to characters
 }
-

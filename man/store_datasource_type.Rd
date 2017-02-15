@@ -18,4 +18,3 @@ store_datasource_type(datasource_type, hash, conn, clean = TRUE)
 \description{
 Store a vector of datasource types
 }
-

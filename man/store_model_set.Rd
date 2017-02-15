@@ -18,4 +18,3 @@ store_model_set(model_set, hash, clean = TRUE, conn)
 \description{
 Store model sets in the database
 }
-

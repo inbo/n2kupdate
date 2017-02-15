@@ -18,4 +18,3 @@ store_species_group(species_group, hash, conn, clean = TRUE)
 \description{
 Store species groups
 }
-

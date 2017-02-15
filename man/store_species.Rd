@@ -20,4 +20,3 @@ store_species(species, language, conn, hash, clean = TRUE)
 \description{
 store species in the database
 }
-

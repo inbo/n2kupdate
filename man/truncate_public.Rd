@@ -12,4 +12,3 @@ truncate_public(conn)
 \description{
 Truncate all tables in the public schema: USE WITH CATION
 }
-

@@ -18,4 +18,3 @@ store_datasource_parameter(datasource_parameter, hash, conn, clean = TRUE)
 \description{
 Store a vector of datasource parameters
 }
-

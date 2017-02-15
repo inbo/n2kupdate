@@ -18,4 +18,3 @@ store_parameter(parameter, hash, conn, clean = TRUE)
 \description{
 Store parameters
 }
-

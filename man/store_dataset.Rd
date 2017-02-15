@@ -18,4 +18,3 @@ store_dataset(dataset, conn, clean = TRUE, hash)
 \description{
 Store a dataset is the database
 }
-

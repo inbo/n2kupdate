@@ -21,4 +21,3 @@ connect_db(host = "localhost", dbname = "n2kunittest",
 \description{
 connect to the unit test database
 }
-

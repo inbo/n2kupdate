@@ -18,4 +18,3 @@ store_model_type(model_type, hash, clean = TRUE, conn)
 \description{
 Store model type in the database
 }
-

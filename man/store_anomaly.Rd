@@ -25,4 +25,3 @@ store_anomaly(anomaly, anomaly_type, datafield, parameter, hash, conn,
 \description{
 Store anomaly
 }
-

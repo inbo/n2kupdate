@@ -18,4 +18,3 @@ store_datafield_type(datafield_type, hash, conn, clean = TRUE)
 \description{
 Store a vector of datafield types
 }
-

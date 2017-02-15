@@ -18,4 +18,3 @@ store_status(status, hash, clean = TRUE, conn)
 \description{
 Store status levels in the database
 }
-

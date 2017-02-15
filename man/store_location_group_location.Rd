@@ -38,4 +38,3 @@ store the link between locations and location groups in the database
  \item all values in location_group_location$location_group_local_id must exist in location_group$local_id
 }
 }
-

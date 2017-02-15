@@ -29,4 +29,3 @@ store locations in the database
  \item all values in location$parent_location must be either NA or exist in location$local_id
 }
 }
-

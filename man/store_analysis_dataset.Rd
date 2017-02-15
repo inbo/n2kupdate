@@ -28,4 +28,3 @@ store_analysis_dataset(analysis, model_set, analysis_version, dataset,
 \description{
 store analysis and dataset in the database
 }
-

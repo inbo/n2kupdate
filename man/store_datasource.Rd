@@ -21,4 +21,3 @@ store a datasource in the database
 \details{
 datasource must contain at least the variables description, datasource_type and connect_method.
 }
-

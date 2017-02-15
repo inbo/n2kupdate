@@ -19,4 +19,3 @@ store_analysis_version(analysis_version, hash, clean = TRUE, conn)
 \description{
 Store the analysis version in the database
 }
-

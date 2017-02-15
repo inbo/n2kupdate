@@ -18,4 +18,3 @@ store_datafield(datafield, conn, hash, clean = TRUE)
 \description{
 store a datafield in the database
 }
-

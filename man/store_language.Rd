@@ -18,4 +18,3 @@ store_language(language, hash, conn, clean = TRUE)
 \description{
 Store language
 }
-

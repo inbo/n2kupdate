@@ -24,4 +24,3 @@ store_analysis(analysis, model_set, analysis_version, conn, hash,
 \description{
 store source species in the database
 }
-
