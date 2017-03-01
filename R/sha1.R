@@ -6,7 +6,7 @@ digest::sha1
 #' @importFrom dplyr %>% mutate_each_
 #' @export
 #' @method sha1 n2kAnalysisVersion
-sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L) {
+sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L, ...) {
   av <- x@AnalysisVersion
   rp <- x@RPackage
   avrp <- x@AnalysisVersionRPackage
@@ -26,7 +26,8 @@ sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L) {
   attr(z, "digest::sha1") <- list(
     class = class(x),
     digits = as.integer(digits),
-    zapsmall = as.integer(zapsmall)
+    zapsmall = as.integer(zapsmall),
+    ...
   )
-  sha1(z, digits = digits, zapsmall = zapsmall)
+  sha1(z, digits = digits, zapsmall = zapsmall, ...)
 }
