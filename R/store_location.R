@@ -64,10 +64,10 @@ parent_local_id are found in location."
   }
   tryCatch(
     store_datafield(
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
     ),
     error = function(e){
       if (clean) {
