@@ -22,6 +22,7 @@ store_anomaly <- function(
   assert_that(has_name(anomaly, "anomaly_type_local_id"))
   assert_that(has_name(anomaly, "parameter_local_id"))
   assert_that(has_name(anomaly, "analysis"))
+  assert_that(has_name(anomaly, "observation"))
   assert_that(
     noNA(
       select_(anomaly, ~anomaly_type_local_id, ~analysis)
@@ -79,34 +80,42 @@ store_anomaly <- function(
 "All anomaly$anomaly_type_local_id must be present in anomaly_type$local_id"
     )
   }
-  parameter <- tryCatch(
-    store_parameter(
-      parameter = parameter,
-      hash = hash,
-      conn = conn,
-      clean = FALSE
-    ),
-    error = function(e){
+  if (missing(parameter)) {
+    parameter <- data.frame(
+      local_id = character(0),
+      fingerprint = character(0),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    parameter <- tryCatch(
+      store_parameter(
+        parameter = parameter,
+        hash = hash,
+        conn = conn,
+        clean = FALSE
+      ),
+      error = function(e){
+        if (clean) {
+          dbRollback(conn)
+        }
+        stop(e)
+      }
+    )
+    nolink <- anomaly %>%
+      filter_(~!is.na(parameter_local_id)) %>%
+      anti_join(
+        parameter,
+        by = c("parameter_local_id" = "local_id")
+      ) %>%
+      nrow()
+    if (nolink > 0) {
       if (clean) {
         dbRollback(conn)
       }
-      stop(e)
+      stop(
+        "All anomaly$parameter_local_id must be present in parameter$local_id"
+      )
     }
-  )
-  nolink <- anomaly %>%
-    filter_(~!is.na(parameter_local_id)) %>%
-    anti_join(
-      parameter,
-      by = c("parameter_local_id" = "local_id")
-    ) %>%
-    nrow()
-  if (nolink > 0) {
-    if (clean) {
-      dbRollback(conn)
-    }
-    stop(
-      "All anomaly$parameter_local_id must be present in parameter$local_id"
-    )
   }
 
   anomaly <- anomaly %>%
