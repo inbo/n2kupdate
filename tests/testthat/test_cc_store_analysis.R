@@ -410,8 +410,7 @@ test_that("store_analysis_version", {
       pav.fingerprint AS analysis_version,
       prp.description,
       prp.version,
-      prp.origin,
-      prp.revision
+      prp.origin
     FROM
     (
       public.analysis_version AS pav
@@ -438,8 +437,7 @@ test_that("store_analysis_version", {
       analysis_version = ~Fingerprint,
       description = ~Description,
       version = ~Version,
-      origin = ~Origin,
-      revision = ~Revision
+      origin = ~Origin
     ) %>%
     expect_identical(stored)
 
@@ -478,8 +476,7 @@ test_that("store_analysis_version", {
       pav.fingerprint AS analysis_version,
       prp.description,
       prp.version,
-      prp.origin,
-      prp.revision
+      prp.origin
     FROM
     (
       public.analysis_version AS pav
@@ -506,8 +503,7 @@ test_that("store_analysis_version", {
       analysis_version = ~Fingerprint,
       description = ~Description,
       version = ~Version,
-      origin = ~Origin,
-      revision = ~Revision
+      origin = ~Origin
     ) %>%
     expect_identical(stored)
 

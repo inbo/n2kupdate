@@ -45,8 +45,7 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
       fingerprint = ~Fingerprint,
       description = ~Description,
       version = ~Version,
-      origin = ~Origin,
-      revision = ~Revision
+      origin = ~Origin
     ) %>%
     arrange_(~fingerprint) %>%
     as.data.frame() %>%
@@ -89,13 +88,12 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
     dbGetQuery(conn = conn)
   sprintf("
     INSERT INTO public.r_package
-      (fingerprint, description, version, origin, revision)
+      (fingerprint, description, version, origin)
     SELECT
       s.fingerprint,
       s.description,
       s.version,
-      s.origin,
-      s.revision
+      s.origin
     FROM
       staging.%s AS s
     LEFT JOIN

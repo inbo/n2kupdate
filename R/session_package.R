@@ -31,7 +31,6 @@ setMethod(
             Description = package$Package,
             Version = package$Version,
             Origin = package$Repository,
-            Revision = NA_character_,
             stringsAsFactors = FALSE
           )
         )
@@ -41,13 +40,12 @@ setMethod(
           data.frame(
             Description = package$Package,
             Version = package$Version,
-            Origin = paste(
-              "https://github.com/",
+            Origin = sprintf(
+              "Github: %s/%s@%s",
               package$GithubUsername,
               package$GithubRepo,
-              sep = "/"
+              package$GithubSHA1
             ),
-            Revision = package$GithubSHA1,
             stringsAsFactors = FALSE
           )
         )
@@ -56,7 +54,6 @@ setMethod(
         Description = package$Package,
         Version = package$Version,
         Origin = NA_character_,
-        Revision = NA_character_,
         stringsAsFactors = FALSE
       )
     }
@@ -70,8 +67,7 @@ setMethod(
           collapse = "."
         )
       ),
-      Origin = NA_character_,
-      Revision = c(NA_character_, session$R.version$`svn rev`),
+      Origin = c(NA_character_, session$R.version$`svn rev`),
       stringsAsFactors = FALSE
     )
     if ("otherPkgs" %in% names(session)) {
@@ -89,8 +85,7 @@ setMethod(
         Fingerprint = ~sha1(list(
           Description = Description,
           Version = Version,
-          Origin = Origin,
-          Revision = Revision
+          Origin = Origin
         ))
       ) %>%
       arrange_(~Fingerprint) %>%
