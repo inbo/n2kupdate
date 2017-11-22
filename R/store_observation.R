@@ -35,7 +35,7 @@ store_observation <- function(
 
   assert_that(are_equal(anyDuplicated(observation$local_id), 0L))
 
-  if (any(is.na(observation$datafield) != is.na(observation$external_code))) {
+  if (any(is.na(observation$datafield_local_id) != is.na(observation$external_code))) {
     stop("provide either both datafield and external_code or neither")
   }
   dupl <- observation %>%

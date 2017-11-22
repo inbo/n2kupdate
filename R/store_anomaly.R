@@ -34,6 +34,9 @@ store_anomaly <- function(
   if (both_na > 0) {
     stop("each row must contain either parameter_local_id or observation")
   }
+  if (missing(parameter)){
+    parameter <- NULL
+  }
 
   if (missing(hash)) {
     hash <- sha1(list(
@@ -80,7 +83,7 @@ store_anomaly <- function(
 "All anomaly$anomaly_type_local_id must be present in anomaly_type$local_id"
     )
   }
-  if (missing(parameter)) {
+  if (is.null(parameter)) {
     parameter <- data.frame(
       local_id = character(0),
       fingerprint = character(0),
