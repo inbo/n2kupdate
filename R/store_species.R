@@ -9,7 +9,7 @@
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 store_species <- function(species, language, conn, hash, clean = TRUE){
-  assert_that(inherits(species, "data.frame"))
+  species <- character_df(species)
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(species, "scientific_name"))
@@ -18,8 +18,6 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(are_equal(anyDuplicated(species$scientific_name), 0L))
   assert_that(are_equal(anyDuplicated(species$nbn_key), 0L))
   assert_that(are_equal(anyDuplicated(species$local_id), 0L))
-
-  species <- as.character(species)
 
   if (missing(hash)) {
     hash <- sha1(list(species, language, as.POSIXct(Sys.time())))

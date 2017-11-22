@@ -7,7 +7,7 @@
 #' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_language <- function(language, hash, conn, clean = TRUE){
-  assert_that(inherits(language, "data.frame"))
+  language <- character_df(language)
   assert_that(noNA(language))
   assert_that(has_name(language, "code"))
   assert_that(has_name(language, "description"))
@@ -26,8 +26,6 @@ store_language <- function(language, hash, conn, clean = TRUE){
 
   assert_that(are_equal(anyDuplicated(language$code), 0L))
   assert_that(are_equal(anyDuplicated(language$description), 0L))
-
-  language <- as.character(language)
 
   language %>%
     transmute_(

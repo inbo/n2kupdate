@@ -287,7 +287,7 @@ test_that("it stores updates data correctly", {
       ")
     )
   ut.datasource2 %>%
-    as.character() %>%
+    character_df() %>%
     gather_(
       key_col = "parameter",
       value_col = "value",

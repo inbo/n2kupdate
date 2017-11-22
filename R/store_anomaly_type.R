@@ -8,7 +8,7 @@
 #' @importFrom dplyr %>% rowwise mutate_ select_ arrange_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
-  assert_that(inherits(anomaly_type, "data.frame"))
+  anomaly_type <- character_df(anomaly_type)
   assert_that(has_name(anomaly_type, "local_id"))
   assert_that(has_name(anomaly_type, "description"))
   assert_that(noNA(select_(anomaly_type, ~local_id, ~description)))
@@ -20,8 +20,6 @@ store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
   assert_that(inherits(conn, "DBIConnection"))
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
-
-  anomaly_type <- as.character(anomaly_type)
 
   if (!has_name(anomaly_type, "long_description")) {
     anomaly_type <- anomaly_type %>%

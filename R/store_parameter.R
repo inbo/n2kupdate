@@ -10,7 +10,7 @@
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 #' @importFrom stats na.omit
 store_parameter <- function(parameter, hash, conn, clean = TRUE){
-  assert_that(inherits(parameter, "data.frame"))
+  parameter <- character_df(parameter)
   assert_that(has_name(parameter, "local_id"))
   assert_that(has_name(parameter, "parent_parameter_local_id"))
   assert_that(has_name(parameter, "description"))
@@ -30,7 +30,6 @@ store_parameter <- function(parameter, hash, conn, clean = TRUE){
   assert_that(noNA(clean))
 
   output <- parameter %>%
-    as.character() %>%
     rowwise() %>%
     transmute_(
       ~local_id,

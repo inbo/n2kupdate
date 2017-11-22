@@ -11,9 +11,9 @@ sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L, ...) {
   rp <- x@RPackage
   avrp <- x@AnalysisVersionRPackage
 
-  av <- as.character(av)
-  rp <- as.character(rp)
-  avrp <- as.character(avrp)
+  av <- character_df(av)
+  rp <- character_df(rp)
+  avrp <- character_df(avrp)
 
   z <- list(
     analysis_version = av %>%

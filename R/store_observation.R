@@ -23,7 +23,7 @@ store_observation <- function(
 
   assert_that(inherits(conn, "DBIConnection"))
 
-  assert_that(inherits(observation, "data.frame"))
+  observation <- character_df(observation)
   assert_that(has_name(observation, "local_id"))
   assert_that(has_name(observation, "datafield_local_id"))
   assert_that(has_name(observation, "external_code"))
@@ -62,8 +62,6 @@ store_observation <- function(
   } else {
     assert_that(is.string(hash))
   }
-
-  observation <- as.character(observation)
 
   if (clean) {
     dbBegin(conn)

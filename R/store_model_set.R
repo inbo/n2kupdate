@@ -7,7 +7,7 @@
 #' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join mutate_each_ funs
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_set <- function(model_set, hash, clean = TRUE, conn){
-  assert_that(inherits(model_set, "data.frame"))
+  model_set <- character_df(model_set)
   assert_that(has_name(model_set, "local_id"))
   assert_that(has_name(model_set, "description"))
   assert_that(has_name(model_set, "first_year"))
@@ -34,7 +34,6 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
       select_(~local_id, ~description, ~first_year, ~last_year, ~duration)
   ))
 
-  model_set <- as.character(model_set)
   numbers <- sapply(model_set, is.numeric)
   if (any(numbers)) {
     model_set <- model_set %>%

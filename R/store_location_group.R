@@ -7,7 +7,7 @@
 #' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_location_group <- function(location_group, hash, conn, clean = TRUE){
-  assert_that(inherits(location_group, "data.frame"))
+  location_group <- character_df(location_group)
   assert_that(noNA(location_group))
   assert_that(has_name(location_group, "local_id"))
   assert_that(has_name(location_group, "description"))
@@ -22,8 +22,6 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
   assert_that(noNA(clean))
 
   assert_that(are_equal(anyDuplicated(location_group$local_id), 0L))
-
-  location_group <- as.character(location_group)
 
   if (clean) {
     dbBegin(conn)

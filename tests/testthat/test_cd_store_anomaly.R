@@ -113,7 +113,7 @@ test_that("store_anomaly_type() works", {
   ) %>%
     dplyr::full_join(
       ut.anomaly_type2 %>%
-        as.character(),
+        character_df(),
       by = "description"
     )
 
@@ -292,7 +292,7 @@ test_that("store_anomaly() works", {
   ) %>%
     dplyr::right_join(
       ut.anomaly2 %>%
-        as.character() %>%
+        character_df() %>%
         inner_join(
           ut.anomaly_type,
           by = c("anomaly_type_local_id" = "local_id")

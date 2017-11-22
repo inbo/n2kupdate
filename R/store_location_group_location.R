@@ -33,8 +33,7 @@ store_location_group_location <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(location_group_location, "data.frame"))
-  assert_that(inherits(location_group, "data.frame"))
+  location_group_location <- character_df(location_group_location)
 
   assert_that(has_name(location_group_location, "location_local_id"))
   assert_that(has_name(location_group_location, "location_group_local_id"))
@@ -42,8 +41,6 @@ store_location_group_location <- function(
   assert_that(noNA(location_group_location))
 
   assert_that(are_equal(anyDuplicated(location_group_location), 0L))
-
-  location_group_location <- as.character(location_group_location)
 
   if (missing(hash)) {
     hash <- sha1(list(

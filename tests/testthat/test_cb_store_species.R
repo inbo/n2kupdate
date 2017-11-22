@@ -167,7 +167,7 @@ test_that("store_species_group works correctly", {
     expect_true()
   ut.species_group2 %>%
     select_(~description, ~scheme) %>%
-    as.character() %>%
+    character_df() %>%
     arrange_(~scheme, ~description) %>%
     expect_identical(
       dbGetQuery(
@@ -356,7 +356,7 @@ source_species."
   ") %>%
     dplyr::full_join(
       ut.source_species2 %>%
-        as.character() %>%
+        character_df() %>%
         inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
       by = c(
         "description", "external_code", "datasource", "table_name",
@@ -419,7 +419,7 @@ test_that("store_language() works fine", {
     expect_true()
   ut.language2 %>%
     select_(~code, ~description) %>%
-    as.character() %>%
+    character_df() %>%
     arrange_(~code, ~description) %>%
     expect_identical(
       dbGetQuery(
@@ -571,7 +571,7 @@ test_that("store_species() works fine", {
     tidyr::spread_(key_col = "language", value_col = "common") %>%
     dplyr::full_join(
       ut.species2 %>%
-        as.character(),
+        character_df(),
       by = c("nbn_key", "scientific_name", "nl", "en")
     )
   expect_false(any(is.na(stored$local_id)))
@@ -844,7 +844,7 @@ found in source_species_species."
         select_(species_local_id = ~local_id, ~nbn_key) %>%
         inner_join(
           ut.source_species_species2 %>%
-            as.character(),
+            character_df(),
           by = "species_local_id"
         ) %>%
         inner_join(
@@ -1169,7 +1169,7 @@ found in species_group_species."
         select_(species_local_id = ~local_id, ~nbn_key) %>%
         inner_join(
           ut.species_group_species2 %>%
-            as.character(),
+            character_df(),
           by = "species_local_id"
         ) %>%
         inner_join(

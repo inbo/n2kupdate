@@ -17,7 +17,7 @@ store_source_species <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(source_species, "data.frame"))
+  source_species <- character_df(source_species)
 
   assert_that(has_name(source_species, "local_id"))
   assert_that(has_name(source_species, "description"))
@@ -37,8 +37,6 @@ store_source_species <- function(
 source_species."
     )
   }
-
-  source_species <- as.character(source_species)
 
   if (missing(hash)) {
     hash <- sha1(list(source_species, datafield, as.POSIXct(Sys.time())))

@@ -19,7 +19,7 @@ store_source_species_species <- function(
   hash,
   clean = TRUE
 ) {
-  assert_that(inherits(source_species_species, "data.frame"))
+  source_species_species <- character_df(source_species_species)
 
   assert_that(has_name(source_species_species, "source_species_local_id"))
   assert_that(has_name(source_species_species, "species_local_id"))
@@ -35,8 +35,6 @@ store_source_species_species <- function(
 found in source_species_species."
     )
   }
-
-  source_species_species <- as.character(source_species_species)
 
   if (missing(hash)) {
     hash <- sha1(

@@ -23,7 +23,7 @@ store_species_group_species <- function(
   conn,
   clean = TRUE
 ){
-  assert_that(inherits(species_group_species, "data.frame"))
+  species_group_species <- character_df(species_group_species)
 
   assert_that(has_name(species_group_species, "species_group_local_id"))
   assert_that(has_name(species_group_species, "species_local_id"))
@@ -50,8 +50,6 @@ found in species_group_species."
   } else {
     assert_that(is.string(hash))
   }
-
-  species_group_species <- as.character(species_group_species)
 
   if (clean) {
     dbBegin(conn)

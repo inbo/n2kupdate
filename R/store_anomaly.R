@@ -18,7 +18,7 @@ store_anomaly <- function(
   conn,
   clean = TRUE
 ){
-  assert_that(inherits(anomaly, "data.frame"))
+  anomaly <- character_df(anomaly)
   assert_that(has_name(anomaly, "anomaly_type_local_id"))
   assert_that(has_name(anomaly, "parameter_local_id"))
   assert_that(has_name(anomaly, "analysis"))
@@ -34,7 +34,7 @@ store_anomaly <- function(
   if (both_na > 0) {
     stop("each row must contain either parameter_local_id or observation")
   }
-  if (missing(parameter)){
+  if (missing(parameter)) {
     parameter <- NULL
   }
 
@@ -48,8 +48,6 @@ store_anomaly <- function(
   assert_that(inherits(conn, "DBIConnection"))
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
-
-  anomaly <- as.character(anomaly)
 
   if (clean) {
     dbBegin(conn)

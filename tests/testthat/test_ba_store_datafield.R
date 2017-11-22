@@ -149,7 +149,7 @@ test_that("it ignores existing data", {
     )
 
   ut.datafield %>%
-    as.character() %>%
+    character_df() %>%
     select_(~-local_id) %>%
     arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
     expect_identical(

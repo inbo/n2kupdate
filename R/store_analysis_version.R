@@ -23,9 +23,9 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   rp <- analysis_version@RPackage
   avrp <- analysis_version@AnalysisVersionRPackage
 
-  av <- as.character(av)
-  rp <- as.character(rp)
-  avrp <- as.character(avrp)
+  av <- character_df(av)
+  rp <- character_df(rp)
+  avrp <- character_df(avrp)
 
   if (clean) {
     dbBegin(conn)

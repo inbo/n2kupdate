@@ -20,11 +20,9 @@ store_analysis_dataset <- function(
   hash,
   conn
 ) {
-  assert_that(inherits(analysis_dataset, "data.frame"))
+  analysis_dataset <- character_df(analysis_dataset)
   assert_that(has_name(analysis_dataset, "analysis"))
   assert_that(has_name(analysis_dataset, "dataset"))
-
-  analysis_dataset <- as.character(analysis_dataset)
 
   if (missing(hash)) {
     hash <- sha1(

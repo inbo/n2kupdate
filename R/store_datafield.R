@@ -11,7 +11,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(datafield, "data.frame"))
+  datafield <- character_df(datafield)
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(datafield, "local_id"))
@@ -29,8 +29,6 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   } else {
     assert_that(is.string(hash))
   }
-
-  datafield <- as.character(datafield)
 
   if (clean) {
     dbBegin(conn)

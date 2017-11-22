@@ -9,7 +9,7 @@
 #' @importFrom tidyr gather_
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
 store_datasource <- function(datasource, conn, clean = TRUE, hash){
-  assert_that(inherits(datasource, "data.frame"))
+  datasource <- character_df(datasource)
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(datasource, "description"))
@@ -18,8 +18,6 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
 
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
-
-  datasource <- as.character(datasource)
 
   if (missing(hash)) {
     hash <- sha1(list(datasource, as.POSIXct(Sys.time())))

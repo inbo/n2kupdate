@@ -16,7 +16,7 @@ store_analysis <- function(
   hash,
   clean = TRUE
 ) {
-  assert_that(inherits(analysis, "data.frame"))
+  analysis <- character_df(analysis)
 
   assert_that(has_name(analysis, "file_fingerprint"))
   assert_that(has_name(analysis, "model_set_local_id"))
@@ -35,7 +35,6 @@ store_analysis <- function(
     stop("Duplicated file_fingerprint")
   }
 
-  analysis <- as.character(analysis)
 
   assert_that(
     all(

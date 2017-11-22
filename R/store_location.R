@@ -20,7 +20,7 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(location, "data.frame"))
+  location <- character_df(location)
 
   assert_that(has_name(location, "local_id"))
   assert_that(has_name(location, "description"))
@@ -41,8 +41,6 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
 parent_local_id are found in location."
     )
   }
-
-  location <- as.character(location)
 
   assert_that(all(location$datafield_local_id %in% datafield$local_id))
 

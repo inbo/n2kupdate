@@ -3,13 +3,12 @@
 #' @inheritParams store_datasource_parameter
 #' @export
 store_dataset <- function(dataset, conn, clean = TRUE, hash){
-  assert_that(inherits(dataset, "data.frame"))
+  dataset <- character_df(dataset)
   assert_that(has_name(dataset, "fingerprint"))
   assert_that(has_name(dataset, "filename"))
   assert_that(has_name(dataset, "datasource"))
   assert_that(has_name(dataset, "import_date"))
 
-  dataset <- as.character(dataset)
 
   if (missing(hash)) {
     hash <- sha1(

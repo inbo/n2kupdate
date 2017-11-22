@@ -7,7 +7,7 @@
 #' @importFrom dplyr %>% rowwise mutate_ select_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_type <- function(model_type, hash, clean = TRUE, conn){
-  assert_that(inherits(model_type, "data.frame"))
+  model_type <- character_df(model_type)
   assert_that(has_name(model_type, "description"))
   assert_that(inherits(conn, "DBIConnection"))
   assert_that(is.flag(clean))
@@ -18,7 +18,6 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
     assert_that(is.string(hash))
   }
 
-  model_type <- as.character(model_type)
 
   if (has_name(model_type, "long_description")) {
     model_type <- model_type %>%
