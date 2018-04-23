@@ -1,5 +1,5 @@
 context("store_observation")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.datafield <- data.frame(
   local_id = ut,
@@ -45,7 +45,7 @@ ut.observation2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("store_observation() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     output <- store_observation(

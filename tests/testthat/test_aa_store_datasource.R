@@ -40,7 +40,7 @@ test_that("input is suitable", {
     store_datasource(datasource = ut.datasource, "junk"),
     "conn does not inherit from class DBIConnection"
   )
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     ut.datasource %>%
       select_(~-description) %>%
@@ -63,7 +63,7 @@ test_that("input is suitable", {
 })
 
 test_that("it stores new data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_is(
     hash <- store_datasource(datasource = ut.datasource, conn = conn),
     "character"
@@ -169,7 +169,7 @@ test_that("it stores new data correctly", {
 })
 
 test_that("subfunctions work correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   # datasource_type
   expect_is(
@@ -228,7 +228,7 @@ test_that("subfunctions work correctly", {
 })
 
 test_that("it stores updates data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_is(
     hash <- store_datasource(datasource = ut.datasource2, conn = conn),
     "character"

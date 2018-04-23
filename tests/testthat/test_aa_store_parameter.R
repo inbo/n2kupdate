@@ -14,7 +14,7 @@ ut.parameter2 <- data.frame(
 )
 
 test_that("store_parameter works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored <- store_parameter(parameter = ut.parameter, conn = conn),

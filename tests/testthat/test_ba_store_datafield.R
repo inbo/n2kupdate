@@ -1,6 +1,6 @@
 context("store_datafield")
 ut <- sprintf("unit test %i", 1:2)
-conn <- connect_db()
+conn <- connect_ut_db()
 ut.datafield <- data.frame(
   local_id = ut,
   datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
@@ -28,7 +28,7 @@ test_that("input is suitable", {
     store_datafield(datafield = ut.datafield, "junk"),
     "conn does not inherit from class DBIConnection"
   )
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     store_datafield(datafield = ut.datafield_error, conn = conn),
     "datafield_type is not a character vector"
@@ -67,7 +67,7 @@ test_that("input is suitable", {
 })
 
 test_that("it stores new data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_is(
     hash <- store_datafield(datafield = ut.datafield, conn = conn),
     "data.frame"
@@ -122,14 +122,14 @@ test_that("it stores new data correctly", {
   DBI::dbDisconnect(conn)
 })
 
-conn <- connect_db()
+conn <- connect_ut_db()
 c("staging", "datafield_junk") %>%
   DBI::dbExistsTable(conn = conn) %>%
   expect_false()
 DBI::dbDisconnect(conn)
 
 test_that("it ignores existing data", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   ut.datafield$table_name <- factor(ut.datafield$table_name)
   expect_is(
     hash <- store_datafield(
@@ -217,14 +217,14 @@ test_that("it ignores existing data", {
     DBI::dbDisconnect(conn)
 })
 
-conn <- connect_db()
+conn <- connect_ut_db()
 c("staging", "datafield_junk") %>%
   DBI::dbExistsTable(conn = conn) %>%
   expect_false()
 DBI::dbDisconnect(conn)
 
 test_that("subfunction works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   # datafield_type
   expect_is(
@@ -250,7 +250,7 @@ test_that("subfunction works correctly", {
   DBI::dbDisconnect(conn)
 })
 
-conn <- connect_db()
+conn <- connect_ut_db()
 c("staging", "datafield_junk") %>%
   DBI::dbExistsTable(conn = conn) %>%
   expect_false()

@@ -1,5 +1,5 @@
 context("store_anomaly")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 observation <- DBI::dbReadTable(conn, "observation")$fingerprint[1]
 ut.anomaly_type <- data.frame(
@@ -49,7 +49,7 @@ ut.anomaly_wrong2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("store_anomaly_type() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     output <- store_anomaly_type(
@@ -124,7 +124,7 @@ test_that("store_anomaly_type() works", {
 })
 
 test_that("store_anomaly() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     output <- store_anomaly(

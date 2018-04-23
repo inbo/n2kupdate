@@ -7,7 +7,7 @@
 #' @export
 #' @importFrom RPostgreSQL PostgreSQL
 #' @importFrom DBI dbConnect
-connect_db <- function(
+connect_ut_db <- function(
   host = "localhost",
   dbname = "n2kunittest",
   user = "unittest_analysis",

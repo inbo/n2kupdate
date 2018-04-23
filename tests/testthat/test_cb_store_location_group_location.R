@@ -1,5 +1,5 @@
 context("store_location_group_location")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.location_group <- data.frame(
   local_id = ut,
@@ -31,7 +31,7 @@ ut.location_group_location <- expand.grid(
 DBI::dbDisconnect(conn)
 
 test_that("it checks the arguments", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     store_location_group_location(
       location_group_location = "junk",
@@ -56,7 +56,7 @@ test_that("it checks the arguments", {
 })
 
 test_that("it stores the correct information", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     staging.location_group <- store_location_group_location(
@@ -298,7 +298,7 @@ test_that("it stores the correct information", {
 })
 
 test_that("subfunction works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   # location_group
   expect_error(

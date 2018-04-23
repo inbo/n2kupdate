@@ -9,7 +9,7 @@ test_that("input is suitable", {
     store_scheme(scheme = ut, conn = "junk"),
     "conn does not inherit from class DBIConnection"
   )
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     store_scheme(scheme = ut, conn = conn, clean = 0),
     "clean is not a flag"
@@ -18,7 +18,7 @@ test_that("input is suitable", {
 })
 
 test_that("it stores new data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_is(
     hash <- store_scheme(scheme = ut, conn = conn),
     "data.frame"

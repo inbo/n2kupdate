@@ -1,5 +1,5 @@
 context("store_species")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.species_group <- data.frame(
   local_id = ut,
@@ -106,7 +106,7 @@ ut.species_group_species2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("store_species_group works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     sg <- store_species_group(
@@ -190,7 +190,7 @@ test_that("store_species_group works correctly", {
 })
 
 test_that("store_source_species works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_source_species(
@@ -371,7 +371,7 @@ source_species."
 })
 
 test_that("store_language() works fine", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     lang <- store_language(
@@ -438,7 +438,7 @@ test_that("store_language() works fine", {
 })
 
 test_that("store_species() works fine", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     spec <- store_species(
@@ -602,7 +602,7 @@ test_that("store_species() works fine", {
 })
 
 test_that("store_source_species_species() works fine", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_source_species_species(
@@ -864,7 +864,7 @@ found in source_species_species."
 })
 
 test_that("store_species_group_species() works as expected", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_species_group_species(

@@ -1,5 +1,5 @@
 context("store_location")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.datafield <- data.frame(
   local_id = ut,
@@ -28,7 +28,7 @@ ut.location2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("input is suitable", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     store_location(location = "junk", datafield = ut.datafield, conn = conn),
     "location does not inherit from class data\\.frame"
@@ -78,7 +78,7 @@ parent_local_id are found in location."
 })
 
 test_that("it stores new data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored.location <- store_location(
@@ -152,7 +152,7 @@ test_that("it stores new data correctly", {
 })
 
 test_that("it updates the description of existing locations", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored.location <- store_location(
@@ -238,7 +238,7 @@ test_that("it updates the description of existing locations", {
   DBI::dbDisconnect(conn)
 })
 
-conn <- connect_db()
+conn <- connect_ut_db()
 c("staging", "datafield_junk") %>%
   DBI::dbExistsTable(conn = conn) %>%
   expect_false()

@@ -1,5 +1,5 @@
 context("store_dataset")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.dataset <- data.frame(
   fingerprint = ut,
@@ -18,7 +18,7 @@ ut.dataset2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("stores new datasets", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     hash <- store_dataset(dataset = ut.dataset, conn = conn),
@@ -56,7 +56,7 @@ test_that("stores new datasets", {
 })
 
 test_that("keeps metadata of existing fingerprints", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     hash <- store_dataset(dataset = ut.dataset2, conn = conn),

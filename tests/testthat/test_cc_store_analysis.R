@@ -1,5 +1,5 @@
 context("store_analysis")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.status <- ut
 ut.model_type <- data.frame(
@@ -106,7 +106,7 @@ ut.analysis_dataset2 <- expand.grid(
 DBI::dbDisconnect(conn)
 
 test_that("store_status works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored <- store_status(status = c(ut.status, ut.status), conn = conn),
@@ -167,7 +167,7 @@ test_that("store_status works", {
 })
 
 test_that("store_model_type works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored <- store_model_type(model_type = ut.model_type, conn = conn),
@@ -262,7 +262,7 @@ test_that("store_model_type works", {
 })
 
 test_that("store_model_set works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_model_set(model_set = ut.model_set1e, conn = conn),
@@ -385,7 +385,7 @@ test_that("store_model_set works", {
 })
 
 test_that("store_analysis_version", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     hash <- store_analysis_version(
@@ -511,7 +511,7 @@ test_that("store_analysis_version", {
 })
 
 test_that("store_analysis() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_analysis(
@@ -800,7 +800,7 @@ test_that("store_analysis() works", {
 })
 
 test_that("store_analysis_dataset works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     hash <- store_analysis_dataset(
