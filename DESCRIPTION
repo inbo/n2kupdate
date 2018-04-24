@@ -13,7 +13,10 @@ Imports:
     digest,
     dplyr,
     methods,
+    purrr,
+    rlang,
     RPostgreSQL,
+    tibble,
     tidyr
 Suggests:
     testthat
