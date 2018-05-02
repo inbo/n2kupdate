@@ -240,5 +240,6 @@ store_anomaly <- function(
 
   attr(anomaly, "SQL") <- anomaly.sql
   attr(anomaly, "hash") <- hash
+  attr(anomaly, "parameter") <- parameter
   return(anomaly)
 }

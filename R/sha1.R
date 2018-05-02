@@ -3,7 +3,7 @@
 digest::sha1
 
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_
+#' @importFrom dplyr %>%
 #' @export
 #' @method sha1 n2kAnalysisVersion
 sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L, ...) {

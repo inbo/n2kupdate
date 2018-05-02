@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA are_equal is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
+#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 #' @importFrom tidyr gather_
 store_datafield <- function(datafield, conn, hash, clean = TRUE){

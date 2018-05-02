@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
+#' @importFrom dplyr %>% rowwise mutate_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_language <- function(language, hash, conn, clean = TRUE){
   language <- character_df(language)

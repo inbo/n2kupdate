@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join mutate_each_ funs
+#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join mutate_at funs
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_set <- function(model_set, hash, clean = TRUE, conn){
   model_set <- character_df(model_set)
@@ -37,7 +37,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
   numbers <- sapply(model_set, is.numeric)
   if (any(numbers)) {
     model_set <- model_set %>%
-      mutate_each_(funs(as.integer), vars = names(numbers)[numbers])
+      mutate_at(.vars = names(numbers)[numbers], .funs = funs(as.integer))
   }
   if (clean) {
     dbBegin(conn)

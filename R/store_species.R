@@ -5,7 +5,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs rename_
+#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_ rename_
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 store_species <- function(species, language, conn, hash, clean = TRUE){

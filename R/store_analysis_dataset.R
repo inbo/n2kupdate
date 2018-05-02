@@ -7,7 +7,7 @@
 #' @inheritParams store_dataset
 #' @export
 #' @importFrom assertthat assert_that has_name
-#' @importFrom dplyr %>% mutate_each_ funs distinct_ arrange_
+#' @importFrom dplyr %>% distinct_ arrange_
 #' @importFrom digest sha1
 #' @importFrom DBI dbBegin dbCommit dbRollback dbWriteTable dbGetQuery
 store_analysis_dataset <- function(

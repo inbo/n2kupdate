@@ -8,7 +8,7 @@
 #' @inheritParams store_species_group
 #' @export
 #' @importFrom assertthat assert_that has_name noNA
-#' @importFrom dplyr %>% select_ mutate_each_ funs inner_join
+#' @importFrom dplyr %>% select_ inner_join
 #' @importFrom digest sha1
 #' @importFrom DBI dbBegin dbCommit dbRollback
 store_species_group_species <- function(

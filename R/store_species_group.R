@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
+#' @importFrom dplyr %>% rowwise mutate_
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_species_group <- function(species_group, hash, conn, clean = TRUE){
   species_group <- character_df(species_group)
