@@ -13,7 +13,7 @@ store_analysis_dataset(analysis, model_set, analysis_version, dataset,
 \item{model_set}{a data.frame with the model sets. Must have variables "local_id", "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.}
 
 \item{analysis_version}{an n2kAnalysisVersion object. See
-\code{\link{get_analysis_version}}}
+\code{\link[n2kanalysis]{get_analysis_version}}}
 
 \item{dataset}{a data.frame with names fingerprint, filename, datasource and import_date}
 

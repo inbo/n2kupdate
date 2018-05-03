@@ -1,6 +1,6 @@
 #' Store the analysis version in the database
 #' @param analysis_version an n2kAnalysisVersion object. See
-#'   \code{\link{get_analysis_version}}
+#'   \code{\link[n2kanalysis]{get_analysis_version}}
 #' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string

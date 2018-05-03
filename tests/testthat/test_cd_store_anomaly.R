@@ -58,7 +58,7 @@ test_that("store_anomaly_type() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_is(
     hash <- attr(output, "hash"),
     "character"
@@ -91,7 +91,7 @@ test_that("store_anomaly_type() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_is(
     hash <- attr(output, "hash"),
     "character"
@@ -154,7 +154,7 @@ test_that("store_anomaly() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_is(
     hash <- attr(output, "hash"),
     "character"
@@ -231,7 +231,7 @@ test_that("store_anomaly() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_identical(
     hash <- attr(output, "hash"),
     "junk"

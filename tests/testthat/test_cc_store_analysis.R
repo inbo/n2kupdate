@@ -1,4 +1,5 @@
 context("store_analysis")
+if (requireNamespace("n2kanalysis")) {
 conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.status <- ut
@@ -49,7 +50,7 @@ ut.model_set2e <- data.frame(
   duration = c(110, 2),
   stringsAsFactors = FALSE
 )
-ut.analysis_version <- get_analysis_version(sessionInfo())
+ut.analysis_version <- n2kanalysis::get_analysis_version(sessionInfo())
 ut.analysis_version2 <- ut.analysis_version
 ut.analysis_version2@AnalysisVersion <- ut.analysis_version2@AnalysisVersion %>%
   mutate_(Fingerprint = ~factor(Fingerprint))
@@ -372,6 +373,10 @@ test_that("store_model_set works", {
     nrow() %>%
     expect_identical(0L)
   ut.model_set2 %>%
+    mutate_at(
+      .vars = c("description", "long_description"),
+      .funs = as.character
+    ) %>%
     dplyr::anti_join(
       public,
       by = c(
@@ -439,7 +444,11 @@ test_that("store_analysis_version", {
       version = ~Version,
       origin = ~Origin
     ) %>%
-    expect_identical(stored)
+    arrange(.data$description) %>%
+    expect_identical(
+      stored %>%
+        arrange(.data$description)
+    )
 
   expect_is(
     hash <- store_analysis_version(
@@ -505,7 +514,11 @@ test_that("store_analysis_version", {
       version = ~Version,
       origin = ~Origin
     ) %>%
-    expect_identical(stored)
+    arrange(.data$description) %>%
+    expect_identical(
+      stored %>%
+        arrange(.data$description)
+    )
 
   DBI::dbDisconnect(conn)
 })
@@ -932,3 +945,4 @@ test_that("store_analysis_dataset works", {
 
   DBI::dbDisconnect(conn)
 })
+}
