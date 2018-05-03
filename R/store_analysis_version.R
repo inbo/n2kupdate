@@ -5,7 +5,8 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join
+#' @importFrom dplyr %>% rowwise mutate select arrange inner_join
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable dbBegin dbCommit
 store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   assert_that(inherits(analysis_version, "n2kAnalysisVersion"))
@@ -31,8 +32,8 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   }
 
   av %>%
-    select_(fingerprint = ~Fingerprint) %>%
-    arrange_(~fingerprint) %>%
+    select(fingerprint = .data$Fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -40,13 +41,13 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
       row.names = FALSE
     )
   rp %>%
-    select_(
-      fingerprint = ~Fingerprint,
-      description = ~Description,
-      version = ~Version,
-      origin = ~Origin
+    select(
+      fingerprint = .data$Fingerprint,
+      description = .data$Description,
+      version = .data$Version,
+      origin = .data$Origin
     ) %>%
-    arrange_(~fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -54,8 +55,11 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
       row.names = FALSE
     )
   avrp %>%
-    select_(analysis_version = ~AnalysisVersion, r_package = ~RPackage) %>%
-    arrange_(~analysis_version, ~r_package) %>%
+    select(
+      analysis_version = .data$AnalysisVersion,
+      r_package = .data$RPackage
+    ) %>%
+    arrange(.data$analysis_version, .data$r_package) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -104,6 +108,7 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
     sql.rp
   ) %>%
     dbGetQuery(conn = conn)
+
   sprintf("
     INSERT INTO public.analysis_version_r_package
       (analysis_version, r_package)
