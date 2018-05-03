@@ -104,7 +104,7 @@ test_that("it stores new data correctly", {
   )
   ut.datasource %>%
     select_(~description, ~datasource_type) %>%
-    arrange_(~datasource_type, ~description) %>%
+    arrange(datasource_type, description) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -129,7 +129,7 @@ test_that("it stores new data correctly", {
       gather_cols = datasource_parameters,
       na.rm = TRUE
     ) %>%
-    arrange_(~description, ~datasource_type, ~parameter) %>%
+    arrange(description, datasource_type, parameter) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -268,7 +268,7 @@ test_that("it stores updates data correctly", {
       description = ~as.character(description),
       datasource_type = ~as.character(datasource_type)
     ) %>%
-    arrange_(~datasource_type, ~description) %>%
+    arrange(datasource_type, description) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -294,7 +294,7 @@ test_that("it stores updates data correctly", {
       gather_cols = datasource_parameters,
       na.rm = TRUE
     ) %>%
-    arrange_(~description, ~datasource_type, ~parameter) %>%
+    arrange(description, datasource_type, parameter) %>%
     expect_identical(
       dbGetQuery(
         conn, "

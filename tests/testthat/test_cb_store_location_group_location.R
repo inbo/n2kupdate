@@ -342,7 +342,7 @@ test_that("subfunction works correctly", {
     expect_false()
   ut.location_group %>%
     select_(~description, ~scheme) %>%
-    arrange_(~scheme, ~description) %>%
+    arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(
         conn,

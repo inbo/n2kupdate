@@ -4,7 +4,8 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join mutate_at funs
+#' @importFrom dplyr %>% rowwise mutate_ select_ inner_join mutate_at funs
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_set <- function(model_set, hash, clean = TRUE, conn){
   model_set <- character_df(model_set)
@@ -92,7 +93,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
       last_year = last_year,
       duration = duration
     ))) %>%
-    arrange_(~model_type, ~first_year, ~last_year)
+    arrange(.data$model_type, .data$first_year, .data$last_year)
   staging %>%
     select_(~-local_id) %>%
     as.data.frame() %>%

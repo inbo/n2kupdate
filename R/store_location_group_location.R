@@ -5,7 +5,8 @@
 #' @inheritParams store_location_group
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ filter_
+#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ filter_ arrange
+#' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
 #' @details
@@ -101,7 +102,7 @@ store_location_group_location <- function(
       location_fingerprint = ~fingerprint,
       ~location_group_local_id
     ) %>%
-    arrange_(~location_group_local_id, ~location_fingerprint) %>%
+    arrange(.data$location_group_local_id, .data$location_fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

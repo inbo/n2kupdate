@@ -124,11 +124,11 @@ test_that("store_status works", {
   expect_equivalent(
     public %>%
       select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint),
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
       select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint)
+      arrange(fingerprint)
   )
   expect_true(all(ut.status %in% public$description))
 
@@ -156,11 +156,11 @@ test_that("store_status works", {
   expect_equivalent(
     public %>%
       select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint),
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
       select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint)
+      arrange(fingerprint)
   )
   expect_true(all(ut.status %in% public$description))
 
@@ -185,11 +185,11 @@ test_that("store_model_type works", {
   expect_equivalent(
     public %>%
       select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint),
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
       select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint)
+      arrange(fingerprint)
   )
 
   expect_is(
@@ -216,11 +216,11 @@ test_that("store_model_type works", {
   expect_equivalent(
     public %>%
       select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint),
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
       select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint)
+      arrange(fingerprint)
   )
 
   expect_is(
@@ -623,10 +623,10 @@ test_that("store_analysis() works", {
   expect_equal(
     stored %>%
       select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description),
+      arrange(description),
     ut.model_set %>%
       select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description)
+      arrange(description)
   )
   expect_equal(
     ut.analysis %>%
@@ -649,14 +649,14 @@ test_that("store_analysis() works", {
         ~status,
         ~status_fingerprint
       ) %>%
-      arrange_(~file_fingerprint),
+      arrange(file_fingerprint),
     stored %>%
       select_(~-id) %>%
       mutate_(
         analysis_date = ~as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
       ) %>%
-      arrange_(~file_fingerprint)
+      arrange(file_fingerprint)
   )
 
   expect_is(
@@ -773,10 +773,10 @@ test_that("store_analysis() works", {
   expect_equal(
     stored %>%
       select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description),
+      arrange(description),
     ut.model_set %>%
       select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description)
+      arrange(description)
   )
   expect_equal(
     ut.analysis %>%
@@ -799,14 +799,14 @@ test_that("store_analysis() works", {
         ~status,
         ~status_fingerprint
       ) %>%
-      arrange_(~file_fingerprint),
+      arrange(file_fingerprint),
     stored %>%
       select_(~-id) %>%
       mutate_(
         analysis_date = ~as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
       ) %>%
-      arrange_(~file_fingerprint)
+      arrange(file_fingerprint)
   )
 
   DBI::dbDisconnect(conn)
@@ -874,9 +874,9 @@ test_that("store_analysis_dataset works", {
   )
   expect_equivalent(
     stored %>%
-      arrange_(~analysis, ~dataset),
+      arrange(analysis, dataset),
     ut.analysis_dataset %>%
-      arrange_(~analysis, ~dataset)
+      arrange(analysis, dataset)
   )
 
   expect_is(
@@ -938,9 +938,9 @@ test_that("store_analysis_dataset works", {
   )
   expect_equivalent(
     stored %>%
-      arrange_(~analysis, ~dataset),
+      arrange(analysis, dataset),
     ut.analysis_dataset %>%
-      arrange_(~analysis, ~dataset)
+      arrange(analysis, dataset)
   )
 
   DBI::dbDisconnect(conn)

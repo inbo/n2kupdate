@@ -7,7 +7,8 @@
 #' @inheritParams store_dataset
 #' @export
 #' @importFrom assertthat assert_that has_name
-#' @importFrom dplyr %>% distinct_ arrange_
+#' @importFrom dplyr %>% distinct_ arrange
+#' @importFrom rlang .data
 #' @importFrom digest sha1
 #' @importFrom DBI dbBegin dbCommit dbRollback dbWriteTable dbGetQuery
 store_analysis_dataset <- function(
@@ -75,7 +76,7 @@ store_analysis_dataset <- function(
 
   analysis_dataset %>%
     distinct_(~analysis, ~dataset) %>%
-    arrange_(~analysis, ~dataset) %>%
+    arrange(.data$analysis, .data$dataset) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

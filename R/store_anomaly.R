@@ -8,7 +8,8 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% anti_join rowwise mutate_ select_ arrange_
+#' @importFrom dplyr %>% anti_join rowwise mutate_ select_ arrange
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbCommit dbBegin
 store_anomaly <- function(
   anomaly,
@@ -148,7 +149,7 @@ store_anomaly <- function(
         parameter = parameter
       ))
     ) %>%
-    arrange_(~fingerprint)
+    arrange(.data$fingerprint)
   assert_that(anyDuplicated(anomaly$fingerprint) == 0L)
 
   anomaly %>%

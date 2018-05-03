@@ -18,7 +18,8 @@ setGeneric(
 #' @importFrom methods setMethod new
 #' @importFrom digest sha1
 #' @importFrom utils sessionInfo
-#' @importFrom dplyr %>% bind_rows rowwise arrange_
+#' @importFrom dplyr %>% bind_rows rowwise arrange
+#' @importFrom rlang .data
 setMethod(
   f = "session_package",
   signature = signature(session = "sessionInfo"),
@@ -88,7 +89,7 @@ setMethod(
           Origin = Origin
         ))
       ) %>%
-      arrange_(~Fingerprint) %>%
+      arrange(.data$Fingerprint) %>%
       as.data.frame()
     attr(package, "AnalysisVersion") <- sha1(package)
     return(package)

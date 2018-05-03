@@ -124,7 +124,7 @@ test_that("store_species_group works correctly", {
     expect_false()
   ut.species_group %>%
     select_(~description, ~scheme) %>%
-    arrange_(~scheme, ~description) %>%
+    arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -168,7 +168,7 @@ test_that("store_species_group works correctly", {
   ut.species_group2 %>%
     select_(~description, ~scheme) %>%
     character_df() %>%
-    arrange_(~scheme, ~description) %>%
+    arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -388,7 +388,7 @@ test_that("store_language() works fine", {
     expect_false()
   ut.language %>%
     select_(~code, ~description) %>%
-    arrange_(~code, ~description) %>%
+    arrange(code, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -420,7 +420,7 @@ test_that("store_language() works fine", {
   ut.language2 %>%
     select_(~code, ~description) %>%
     character_df() %>%
-    arrange_(~code, ~description) %>%
+    arrange(code, description) %>%
     expect_identical(
       dbGetQuery(
         conn,

@@ -4,7 +4,8 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_ rename_
+#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange rename_
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
@@ -69,7 +70,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
       description = description,
       datasource_type = datasource_type
     ))) %>%
-    arrange_(~datasource_type, ~description)
+    arrange(.data$datasource_type, .data$description)
   ds %>%
     as.data.frame() %>%
     dbWriteTable(

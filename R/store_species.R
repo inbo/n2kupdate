@@ -5,7 +5,8 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_ rename_
+#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange rename_
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
 store_species <- function(species, language, conn, hash, clean = TRUE){
@@ -66,7 +67,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
       scientific_name = scientific_name,
       nbn_key = nbn_key
     ))) %>%
-    arrange_(~fingerprint)
+    arrange(.data$fingerprint)
   sp %>%
     as.data.frame() %>%
     dbWriteTable(

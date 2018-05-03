@@ -90,7 +90,7 @@ test_that("it stores new data correctly", {
     )
   ut.datafield %>%
     select_(~-local_id) %>%
-    arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
+    arrange(datasource, table_name, primary_key, datafield_type) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -151,7 +151,7 @@ test_that("it ignores existing data", {
   ut.datafield %>%
     character_df() %>%
     select_(~-local_id) %>%
-    arrange_(~datasource, ~table_name, ~primary_key, ~datafield_type) %>%
+    arrange(datasource, table_name, primary_key, datafield_type) %>%
     expect_identical(
       dbGetQuery(
         conn, "

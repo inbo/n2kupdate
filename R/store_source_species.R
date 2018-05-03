@@ -4,7 +4,8 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ filter_
+#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ filter_ arrange
+#' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
 store_source_species <- function(
@@ -99,7 +100,7 @@ source_species."
       ~datafield_local_id,
       ~external_code
     ) %>%
-    arrange_(~fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
