@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ arrange
+#' @importFrom dplyr %>% select_ rowwise inner_join left_join transmute_ arrange mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -86,10 +86,10 @@ source_species."
     dbGetQuery(conn = conn) %>%
     inner_join(source_species, by = "datafield_local_id") %>%
     rowwise() %>%
-    mutate_(
-      fingerprint = ~sha1(c(
-        datafield = datafield,
-        external_code = external_code
+    mutate(
+      fingerprint = sha1(c(
+        datafield = .data$datafield,
+        external_code = .data$external_code
       ))
     )
   source_species %>%

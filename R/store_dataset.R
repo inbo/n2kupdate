@@ -1,7 +1,7 @@
 #' Store a dataset is the database
 #' @param dataset a data.frame with names fingerprint, filename, datasource and import_date
 #' @inheritParams store_datasource_parameter
-#' @importFrom dplyr %>% arrange
+#' @importFrom dplyr %>% arrange mutate
 #' @importFrom rlang .data
 #' @export
 store_dataset <- function(dataset, conn, clean = TRUE, hash){
@@ -31,7 +31,7 @@ store_dataset <- function(dataset, conn, clean = TRUE, hash){
 
   dataset %>%
     arrange(.data$fingerprint) %>%
-    mutate_(import_date = ~as.POSIXct(import_date)) %>%
+    mutate(import_date = as.POSIXct(.data$import_date)) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

@@ -284,7 +284,7 @@ source_species."
   ") %>%
     dplyr::full_join(
       ut.source_species %>%
-        mutate_(description = ~as.character(description)) %>%
+        mutate(description = as.character(description)) %>%
         inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
       by = c(
         "description", "external_code", "datasource", "table_name",

@@ -5,7 +5,7 @@
 #' @inheritParams store_model_set
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_
+#' @importFrom dplyr %>% select_ mutate rowwise inner_join left_join transmute_
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_analysis <- function(
@@ -117,7 +117,7 @@ store_analysis <- function(
       by = c("local_id" = "model_set_local_id")
     ) %>%
     select_(~-local_id) %>%
-    mutate_(analysis_date = ~as.POSIXct(analysis_date)) %>%
+    mutate(analysis_date = as.POSIXct(.data$analysis_date)) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

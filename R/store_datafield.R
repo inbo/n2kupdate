@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA are_equal is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ select_ arrange
+#' @importFrom dplyr %>% transmute_ select_ arrange mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 #' @importFrom tidyr gather_
@@ -66,11 +66,11 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
     ) %>%
     select_(~-dft) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(
-      datasource = datasource,
-      table_name = table_name,
-      primary_key = primary_key,
-      datafield_type = datafield_type
+    mutate(fingerprint = sha1(c(
+      datasource = .data$datasource,
+      table_name = .data$table_name,
+      primary_key = .data$primary_key,
+      datafield_type = .data$datafield_type
     )))
   df %>%
     arrange(.data$fingerprint) %>%

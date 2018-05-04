@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ select_ arrange rename_
+#' @importFrom dplyr %>% transmute_ select_ arrange rename_ mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
@@ -66,9 +66,9 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     ) %>%
     select_(~-dst) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(
-      description = description,
-      datasource_type = datasource_type
+    mutate(fingerprint = sha1(c(
+      description = .data$description,
+      datasource_type = .data$datasource_type
     ))) %>%
     arrange(.data$datasource_type, .data$description)
   ds %>%

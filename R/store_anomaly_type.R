@@ -5,7 +5,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange
+#' @importFrom dplyr %>% rowwise mutate select_ arrange
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
@@ -24,13 +24,13 @@ store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
 
   if (!has_name(anomaly_type, "long_description")) {
     anomaly_type <- anomaly_type %>%
-      mutate_(long_description = NA)
+      mutate(long_description = NA_character_)
   }
 
   anomaly_type <- anomaly_type %>%
     select_(~local_id, ~description, ~long_description) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description))) %>%
+    mutate(fingerprint = sha1(c(description = .data$description))) %>%
     arrange(.data$fingerprint)
   assert_that(anyDuplicated(anomaly_type$fingerprint) == 0L)
 

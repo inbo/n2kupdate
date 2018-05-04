@@ -64,7 +64,7 @@ test_that("input is suitable", {
     "location does not have name external_code"
   )
   ut.duplicate <- rbind(ut.location, ut.location) %>%
-    mutate_(local_id = ~letters[seq_along(local_id)])
+    mutate(local_id = letters[seq_along(local_id)])
   expect_error(
     store_location(
       location = ut.duplicate,
@@ -216,7 +216,7 @@ test_that("it updates the description of existing locations", {
   ") %>%
     dplyr::full_join(
       ut.location2 %>%
-        mutate_(description = ~as.character(description)) %>%
+        mutate(description = as.character(description)) %>%
         inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
       by = c(
         "description", "external_code", "datasource", "table_name",

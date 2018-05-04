@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_
+#' @importFrom dplyr %>% rowwise mutate
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_location_group <- function(location_group, hash, conn, clean = TRUE){
   location_group <- character_df(location_group)
@@ -35,7 +35,7 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       ~scheme
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(scheme = scheme, description = description)))
+    mutate(fingerprint = sha1(c(scheme = .data$scheme, description = .data$description)))
   staging %>%
     as.data.frame() %>%
     dbWriteTable(

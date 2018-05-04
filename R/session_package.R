@@ -18,7 +18,7 @@ setGeneric(
 #' @importFrom methods setMethod new
 #' @importFrom digest sha1
 #' @importFrom utils sessionInfo
-#' @importFrom dplyr %>% bind_rows rowwise arrange
+#' @importFrom dplyr %>% bind_rows rowwise arrange mutate
 #' @importFrom rlang .data
 setMethod(
   f = "session_package",
@@ -82,11 +82,11 @@ setMethod(
     rownames(package) <- NULL
     package <- package %>%
       rowwise() %>%
-      mutate_(
-        Fingerprint = ~sha1(list(
-          Description = Description,
-          Version = Version,
-          Origin = Origin
+      mutate(
+        Fingerprint = sha1(list(
+          Description = .data$Description,
+          Version = .data$Version,
+          Origin = .data$Origin
         ))
       ) %>%
       arrange(.data$Fingerprint) %>%

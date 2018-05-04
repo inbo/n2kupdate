@@ -53,9 +53,9 @@ ut.model_set2e <- data.frame(
 ut.analysis_version <- n2kanalysis::get_analysis_version(sessionInfo())
 ut.analysis_version2 <- ut.analysis_version
 ut.analysis_version2@AnalysisVersion <- ut.analysis_version2@AnalysisVersion %>%
-  mutate_(Fingerprint = ~factor(Fingerprint))
+  mutate(Fingerprint = factor(Fingerprint))
 ut.analysis_version2@RPackage <- ut.analysis_version2@RPackage %>%
-  mutate_(Fingerprint = ~factor(Fingerprint))
+  mutate(Fingerprint = factor(Fingerprint))
 ut.analysis_version2@AnalysisVersionRPackage <-
   ut.analysis_version2@AnalysisVersionRPackage %>%
     dplyr::mutate_all(funs(factor))
@@ -652,8 +652,8 @@ test_that("store_analysis() works", {
       arrange(file_fingerprint),
     stored %>%
       select_(~-id) %>%
-      mutate_(
-        analysis_date = ~as.POSIXct(analysis_date) %>%
+      mutate(
+        analysis_date = as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
       ) %>%
       arrange(file_fingerprint)
@@ -802,8 +802,8 @@ test_that("store_analysis() works", {
       arrange(file_fingerprint),
     stored %>%
       select_(~-id) %>%
-      mutate_(
-        analysis_date = ~as.POSIXct(analysis_date) %>%
+      mutate(
+        analysis_date = as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
       ) %>%
       arrange(file_fingerprint)

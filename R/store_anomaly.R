@@ -8,7 +8,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% anti_join rowwise mutate_ select_ arrange filter
+#' @importFrom dplyr %>% anti_join rowwise mutate select_ arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbCommit dbBegin
 store_anomaly <- function(
@@ -141,12 +141,12 @@ store_anomaly <- function(
       ~anomaly_type, ~analysis, ~parameter, ~observation
     ) %>%
     rowwise() %>%
-    mutate_(
-      fingerprint = ~sha1(c(
-        anomaly_type = anomaly_type,
-        analysis = analysis,
-        observation = observation,
-        parameter = parameter
+    mutate(
+      fingerprint = sha1(c(
+        anomaly_type = .data$anomaly_type,
+        analysis = .data$analysis,
+        observation = .data$observation,
+        parameter = .data$parameter
       ))
     ) %>%
     arrange(.data$fingerprint)

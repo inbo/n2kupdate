@@ -5,7 +5,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate select arrange inner_join
+#' @importFrom dplyr %>% rowwise select arrange inner_join
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable dbBegin dbCommit
 store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){

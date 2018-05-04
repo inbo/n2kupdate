@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_
+#' @importFrom dplyr %>% rowwise mutate
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_language <- function(language, hash, conn, clean = TRUE){
   language <- character_df(language)
@@ -34,7 +34,9 @@ store_language <- function(language, hash, conn, clean = TRUE){
       ~description
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(code = code, description = description))) %>%
+    mutate(
+      fingerprint = sha1(c(code = .data$code, description = .data$description))
+    ) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

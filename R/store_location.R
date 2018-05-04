@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ arrange filter
+#' @importFrom dplyr %>% select_ mutate rowwise inner_join left_join transmute_ arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -99,12 +99,12 @@ parent_local_id are found in location."
     dbGetQuery(conn = conn) %>%
     inner_join(location, by = "datafield_local_id") %>%
     rowwise() %>%
-    mutate_(
-      fingerprint = ~ifelse(
-        is.na(parent_local_id),
+    mutate(
+      fingerprint = ifelse(
+        is.na(.data$parent_local_id),
         sha1(c(
-          datafield = datafield,
-          external_code = external_code
+          datafield = .data$datafield,
+          external_code = .data$external_code
         )),
         NA
       )
@@ -120,18 +120,18 @@ parent_local_id are found in location."
           ),
         by = "parent_local_id"
       ) %>%
-      mutate_(
-        fingerprint = ~ifelse(
-          is.na(fingerprint),
+      mutate(
+        fingerprint = ifelse(
+          is.na(.data$fingerprint),
           ifelse(
-            !is.na(parent_fingerprint),
+            !is.na(.data$parent_fingerprint),
             sha1(c(
-              datafield = datafield,
-              external_code = external_code
+              datafield = .data$datafield,
+              external_code = .data$external_code
             )),
             NA
           ),
-          fingerprint
+          .data$fingerprint
         )
       )
     if (all.equal(

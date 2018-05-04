@@ -152,7 +152,7 @@ test_that("it stores the correct information", {
   result <- to.store %>%
     dplyr::full_join(
       stored %>%
-        mutate_(junk = 1),
+        mutate(junk = 1),
       by = colnames(stored)
     )
   expect_false(any(is.na(result$location_local_id)))
@@ -286,7 +286,7 @@ test_that("it stores the correct information", {
   result <- to.store %>%
     dplyr::full_join(
       stored %>%
-        mutate_(junk = 1),
+        mutate(junk = 1),
       by = colnames(stored)
     )
   expect_false(any(is.na(result$location_local_id)))

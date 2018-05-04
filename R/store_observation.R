@@ -7,7 +7,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA is.flag are_equal
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ anti_join inner_join left_join rowwise mutate_ filter
+#' @importFrom dplyr %>% select_ anti_join inner_join left_join rowwise mutate filter
 #' @importFrom DBI dbReadTable dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 store_observation <- function(
   datafield,
@@ -141,7 +141,7 @@ store_observation <- function(
       )
   } else {
     observation_stored <- observation_stored %>%
-      mutate_(datafield_fingerprint = ~NA_character_)
+      mutate(datafield_fingerprint = NA_character_)
   }
 
   if (!all(is.na(observation$parameter_local_id))) {
@@ -164,17 +164,17 @@ store_observation <- function(
       )
   } else {
     observation_stored <- observation_stored %>%
-      mutate_(parameter_fingerprint = ~NA_character_)
+      mutate(parameter_fingerprint = NA_character_)
   }
   observation_stored <- observation_stored %>%
     rowwise() %>%
-    mutate_(
-      fingerprint = ~sha1(c(
-        datafield = datafield_fingerprint,
-        external_code = external_code,
-        location = location_fingerprint,
-        year = year,
-        parameter = parameter_fingerprint
+    mutate(
+      fingerprint = sha1(c(
+        datafield = .data$datafield_fingerprint,
+        external_code = .data$external_code,
+        location = .data$location_fingerprint,
+        year = .data$year,
+        parameter = .data$parameter_fingerprint
       ))
     )
   observation_stored %>%
