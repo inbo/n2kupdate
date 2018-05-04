@@ -88,7 +88,7 @@ test_that("it stores the correct information", {
   to.store <- ut.location_group_location %>%
     inner_join(
       ut.location_group %>%
-        rename_(location_group = ~description),
+        rename(location_group = description),
       by = c("location_group_local_id" = "local_id")
     ) %>%
     select_(~-location_group_local_id) %>%
@@ -222,7 +222,7 @@ test_that("it stores the correct information", {
   to.store <- ut.location_group_location %>%
     inner_join(
       ut.location_group %>%
-        rename_(location_group = ~description),
+        rename(location_group = description),
       by = c("location_group_local_id" = "local_id")
     ) %>%
     select_(~-location_group_local_id) %>%

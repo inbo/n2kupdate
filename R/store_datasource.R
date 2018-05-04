@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ select_ arrange rename_ mutate
+#' @importFrom dplyr %>% transmute_ select_ arrange rename mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
@@ -61,7 +61,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     ) %>%
     inner_join(
       datasource_type %>%
-        rename_(datasource_type = ~fingerprint),
+        rename(datasource_type = .data$fingerprint),
       by = c("dst" = "description")
     ) %>%
     select_(~-dst) %>%
@@ -126,10 +126,10 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     dbGetQuery(conn = conn)
 
   datasource %>%
-    rename_(dst = ~datasource_type) %>%
+    rename(dst = .data$datasource_type) %>%
     inner_join(
       datasource_type %>%
-        rename_(datasource_type = ~fingerprint),
+        rename(datasource_type = .data$fingerprint),
       by = c("dst" = "description")
     ) %>%
     select_(~-dst) %>%
@@ -141,7 +141,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     ) %>%
     inner_join(
       datasource_parameter %>%
-        rename_(dpd = ~description, parameter = ~fingerprint),
+        rename(dpd = .data$description, parameter = .data$fingerprint),
       by = "dpd"
     ) %>%
     select_(~-dpd) %>%
