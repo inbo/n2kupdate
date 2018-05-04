@@ -7,7 +7,6 @@
 #' @importFrom dplyr %>% transmute select arrange mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
-#' @importFrom tidyr gather_
 store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))

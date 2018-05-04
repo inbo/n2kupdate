@@ -7,7 +7,7 @@
 #' @importFrom dplyr %>% transmute select arrange rename mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
-#' @importFrom tidyr gather_
+#' @importFrom tidyr gather
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
 store_datasource <- function(datasource, conn, clean = TRUE, hash){
   datasource <- character_df(datasource)
@@ -133,10 +133,10 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
       by = c("dst" = "description")
     ) %>%
     select(-.data$dst) %>%
-    gather_(
-      key_col = "dpd",
-      value_col = "value",
-      gather_cols = datasource_parameters,
+    gather(
+      key = "dpd",
+      value = "value",
+      datasource_parameters,
       na.rm = TRUE
     ) %>%
     inner_join(

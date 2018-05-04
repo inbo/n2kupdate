@@ -123,10 +123,10 @@ test_that("it stores new data correctly", {
       ")
     )
   ut.datasource %>%
-    gather_(
-      key_col = "parameter",
-      value_col = "value",
-      gather_cols = datasource_parameters,
+    gather(
+      key = "parameter",
+      value = "value",
+      datasource_parameters,
       na.rm = TRUE
     ) %>%
     arrange(description, datasource_type, parameter) %>%
@@ -288,10 +288,10 @@ test_that("it stores updates data correctly", {
     )
   ut.datasource2 %>%
     character_df() %>%
-    gather_(
-      key_col = "parameter",
-      value_col = "value",
-      gather_cols = datasource_parameters,
+    gather(
+      key = "parameter",
+      value = "value",
+      datasource_parameters,
       na.rm = TRUE
     ) %>%
     arrange(description, datasource_type, parameter) %>%

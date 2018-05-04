@@ -8,7 +8,7 @@
 #' @importFrom dplyr %>% transmute select arrange  mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
-#' @importFrom tidyr gather_
+#' @importFrom tidyr gather
 store_species <- function(species, language, conn, hash, clean = TRUE){
   species <- character_df(species)
   assert_that(inherits(conn, "DBIConnection"))
@@ -119,10 +119,10 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
     select(-.data$id) %>%
     inner_join(species, by = c("scientific_name", "nbn_key")) %>%
     select(-.data$scientific_name, -.data$nbn_key) %>%
-    gather_(
-      key_col = "code",
-      value_col = "description",
-      gather_cols = lang.code
+    gather(
+      key = "code",
+      value = "description",
+      lang.code
     ) %>%
     dbWriteTable(
       conn = conn,

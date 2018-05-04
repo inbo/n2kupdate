@@ -35,7 +35,12 @@ store_location_group <- function(location_group, hash, conn, clean = TRUE){
       .data$scheme
     ) %>%
     rowwise() %>%
-    mutate(fingerprint = sha1(c(scheme = .data$scheme, description = .data$description)))
+    mutate(
+      fingerprint = sha1(c(
+        scheme = .data$scheme,
+        description = .data$description
+      ))
+    )
   staging %>%
     as.data.frame() %>%
     dbWriteTable(
