@@ -28,10 +28,10 @@ store_language <- function(language, hash, conn, clean = TRUE){
   assert_that(are_equal(anyDuplicated(language$description), 0L))
 
   language %>%
-    transmute_(
-      id = ~NA_integer_,
-      ~code,
-      ~description
+    transmute(
+      id = NA_integer_,
+      .data$code,
+      .data$description
     ) %>%
     rowwise() %>%
     mutate(

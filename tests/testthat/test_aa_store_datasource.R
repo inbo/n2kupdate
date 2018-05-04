@@ -235,7 +235,7 @@ test_that("it stores updates data correctly", {
   )
 
   ut.datasource2 %>%
-    transmute_(description = ~as.character(datasource_type)) %>%
+    transmute(description = as.character(.data$datasource_type)) %>%
     distinct() %>%
     dplyr::anti_join(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type"),
@@ -264,9 +264,9 @@ test_that("it stores updates data correctly", {
     expect_identical(0L)
 
   ut.datasource2 %>%
-    transmute_(
-      description = ~as.character(description),
-      datasource_type = ~as.character(datasource_type)
+    transmute(
+      description = as.character(description),
+      datasource_type = as.character(datasource_type)
     ) %>%
     arrange(datasource_type, description) %>%
     expect_identical(

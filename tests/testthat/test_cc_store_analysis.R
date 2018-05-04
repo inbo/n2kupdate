@@ -634,20 +634,20 @@ test_that("store_analysis() works", {
         ut.model_set,
         by = c("model_set_local_id" = "local_id")
       ) %>%
-      transmute_(
-        ~file_fingerprint,
-        ~description,
-        ~first_year,
-        last_year = ~last_year.y,
-        ~duration,
-        ~location_group,
-        ~species_group,
-        this_year = ~last_year.x,
-        ~seed,
-        ~analysis_version,
-        analysis_date = ~format(analysis_date, format = "%F %T %z"),
-        ~status,
-        ~status_fingerprint
+      transmute(
+        file_fingerprint,
+        description,
+        first_year,
+        last_year = last_year.y,
+        duration,
+        location_group,
+        species_group,
+        this_year = last_year.x,
+        seed,
+        analysis_version,
+        analysis_date = format(analysis_date, format = "%F %T %z"),
+        status,
+        status_fingerprint
       ) %>%
       arrange(file_fingerprint),
     stored %>%
@@ -784,20 +784,20 @@ test_that("store_analysis() works", {
         ut.model_set,
         by = c("model_set_local_id" = "local_id")
       ) %>%
-      transmute_(
-        ~file_fingerprint,
-        ~description,
-        ~first_year,
-        last_year = ~last_year.y,
-        ~duration,
-        ~location_group,
-        ~species_group,
-        this_year = ~last_year.x,
-        ~seed,
-        ~analysis_version,
-        analysis_date = ~format(analysis_date, format = "%F %T %z"),
-        ~status,
-        ~status_fingerprint
+      transmute(
+        file_fingerprint,
+        description,
+        first_year,
+        last_year = last_year.y,
+        duration,
+        location_group,
+        species_group,
+        this_year = last_year.x,
+        seed,
+        analysis_version,
+        analysis_date = format(analysis_date, format = "%F %T %z"),
+        status,
+        status_fingerprint
       ) %>%
       arrange(file_fingerprint),
     stored %>%

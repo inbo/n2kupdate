@@ -5,7 +5,7 @@
 #' @inheritParams store_model_set
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute_
+#' @importFrom dplyr %>% select mutate rowwise inner_join left_join
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_analysis <- function(

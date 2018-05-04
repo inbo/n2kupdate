@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA are_equal is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ select arrange mutate
+#' @importFrom dplyr %>% transmute select arrange mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 #' @importFrom tidyr gather_
@@ -51,13 +51,13 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   )
 
   df <- datafield %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~local_id,
-      ~datasource,
-      ~table_name,
-      ~primary_key,
-      dft = ~datafield_type
+      .data$local_id,
+      .data$datasource,
+      .data$table_name,
+      .data$primary_key,
+      dft = .data$datafield_type
     ) %>%
     inner_join(
       datafield_type %>%

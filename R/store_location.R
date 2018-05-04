@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute_ arrange filter
+#' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -146,14 +146,14 @@ parent_local_id are found in location."
     }
   }
   location %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~fingerprint,
-      ~description,
+      .data$fingerprint,
+      .data$description,
       parent_location = NA_integer_,
-      ~parent_fingerprint,
-      ~datafield_local_id,
-      ~external_code
+      .data$parent_fingerprint,
+      .data$datafield_local_id,
+      .data$external_code
     ) %>%
     arrange(.data$fingerprint) %>%
     as.data.frame() %>%

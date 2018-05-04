@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ select arrange rename mutate
+#' @importFrom dplyr %>% transmute select arrange rename mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
@@ -54,10 +54,10 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
   )
 
   ds <- datasource %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~description,
-      dst = ~datasource_type
+      .data$description,
+      dst = .data$datasource_type
     ) %>%
     inner_join(
       datasource_type %>%

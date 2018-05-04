@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select rowwise inner_join left_join transmute_ arrange mutate
+#' @importFrom dplyr %>% select rowwise inner_join left_join transmute arrange mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -93,12 +93,12 @@ source_species."
       ))
     )
   source_species %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~fingerprint,
-      ~description,
-      ~datafield_local_id,
-      ~external_code
+      .data$fingerprint,
+      .data$description,
+      .data$datafield_local_id,
+      .data$external_code
     ) %>%
     arrange(.data$fingerprint) %>%
     as.data.frame() %>%
