@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange rename_
+#' @importFrom dplyr %>% transmute_ select_ arrange rename_
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_

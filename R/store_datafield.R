@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA are_equal is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange
+#' @importFrom dplyr %>% transmute_ select_ arrange
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 #' @importFrom tidyr gather_

@@ -7,7 +7,7 @@
 #' @inheritParams store_dataset
 #' @export
 #' @importFrom assertthat assert_that has_name
-#' @importFrom dplyr %>% distinct_ arrange
+#' @importFrom dplyr %>% arrange distinct
 #' @importFrom rlang .data
 #' @importFrom digest sha1
 #' @importFrom DBI dbBegin dbCommit dbRollback dbWriteTable dbGetQuery
@@ -75,7 +75,7 @@ store_analysis_dataset <- function(
   assert_that(all(analysis_dataset$dataset %in% dataset$fingerprint))
 
   analysis_dataset %>%
-    distinct_(~analysis, ~dataset) %>%
+    distinct(.data$analysis, .data$dataset) %>%
     arrange(.data$analysis, .data$dataset) %>%
     as.data.frame() %>%
     dbWriteTable(

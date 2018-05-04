@@ -84,7 +84,7 @@ test_that("it stores new data correctly", {
     expect_false()
   ut.datafield %>%
     select_(description = ~datafield_type) %>%
-    distinct_() %>%
+    distinct() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
@@ -143,7 +143,7 @@ test_that("it ignores existing data", {
 
   ut.datafield %>%
     select_(description = ~datafield_type) %>%
-    distinct_() %>%
+    distinct() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
