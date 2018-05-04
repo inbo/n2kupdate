@@ -91,7 +91,7 @@ test_that("it stores the correct information", {
         rename(location_group = description),
       by = c("location_group_local_id" = "local_id")
     ) %>%
-    select_(~-location_group_local_id) %>%
+    select(-location_group_local_id) %>%
     inner_join(
       ut.location,
       by = c("location_local_id" = "local_id")
@@ -100,7 +100,7 @@ test_that("it stores the correct information", {
       ut.datafield,
       by = c("datafield_local_id" = "local_id")
     ) %>%
-    select_(~-datafield_local_id)
+    select(-datafield_local_id)
   stored <- dbGetQuery(conn, "
     SELECT
       s.fingerprint AS scheme,
@@ -225,7 +225,7 @@ test_that("it stores the correct information", {
         rename(location_group = description),
       by = c("location_group_local_id" = "local_id")
     ) %>%
-    select_(~-location_group_local_id) %>%
+    select(-location_group_local_id) %>%
     inner_join(
       ut.location,
       by = c("location_local_id" = "local_id")
@@ -234,7 +234,7 @@ test_that("it stores the correct information", {
       ut.datafield,
       by = c("datafield_local_id" = "local_id")
     ) %>%
-    select_(~-datafield_local_id)
+    select(-datafield_local_id)
   stored <- dbGetQuery(conn, "
     SELECT
       s.fingerprint AS scheme,
@@ -303,19 +303,19 @@ test_that("subfunction works correctly", {
   # location_group
   expect_error(
     ut.location_group %>%
-      select_(~-local_id) %>%
+      select(-local_id) %>%
       store_location_group(conn = conn),
     "location_group does not have name local_id"
   )
   expect_error(
     ut.location_group %>%
-      select_(~-description) %>%
+      select(-description) %>%
       store_location_group(conn = conn),
     "location_group does not have name description"
   )
   expect_error(
     ut.location_group %>%
-      select_(~-scheme) %>%
+      select(-scheme) %>%
       store_location_group(conn = conn),
     "location_group does not have name scheme"
   )
@@ -341,7 +341,7 @@ test_that("subfunction works correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.location_group %>%
-    select_(~description, ~scheme) %>%
+    select(description, scheme) %>%
     arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(

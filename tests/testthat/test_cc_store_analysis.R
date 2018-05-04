@@ -123,11 +123,11 @@ test_that("store_status works", {
   public <- DBI::dbReadTable(conn, c("public", "status"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description) %>%
+      select(fingerprint, description) %>%
       arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description) %>%
+      select(fingerprint, description) %>%
       arrange(fingerprint)
   )
   expect_true(all(ut.status %in% public$description))
@@ -155,11 +155,11 @@ test_that("store_status works", {
   public <- DBI::dbReadTable(conn, c("public", "status"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description) %>%
+      select(fingerprint, description) %>%
       arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description) %>%
+      select(fingerprint, description) %>%
       arrange(fingerprint)
   )
   expect_true(all(ut.status %in% public$description))
@@ -184,11 +184,11 @@ test_that("store_model_type works", {
   public <- DBI::dbReadTable(conn, c("public", "model_type"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
+      select(fingerprint, description, long_description) %>%
       arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
+      select(fingerprint, description, long_description) %>%
       arrange(fingerprint)
   )
 
@@ -215,11 +215,11 @@ test_that("store_model_type works", {
   public <- DBI::dbReadTable(conn, c("public", "model_type"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
+      select(fingerprint, description, long_description) %>%
       arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
+      select(fingerprint, description, long_description) %>%
       arrange(fingerprint)
   )
 
@@ -438,11 +438,11 @@ test_that("store_analysis_version", {
       ut.analysis_version@RPackage,
       by = c("RPackage" = "Fingerprint")
     ) %>%
-    select_(
-      analysis_version = ~Fingerprint,
-      description = ~Description,
-      version = ~Version,
-      origin = ~Origin
+    select(
+      analysis_version = Fingerprint,
+      description = Description,
+      version = Version,
+      origin = Origin
     ) %>%
     arrange(.data$description) %>%
     expect_identical(
@@ -508,11 +508,11 @@ test_that("store_analysis_version", {
       ut.analysis_version@RPackage,
       by = c("RPackage" = "Fingerprint")
     ) %>%
-    select_(
-      analysis_version = ~Fingerprint,
-      description = ~Description,
-      version = ~Version,
-      origin = ~Origin
+    select(
+      analysis_version = Fingerprint,
+      description = Description,
+      version = Version,
+      origin = Origin
     ) %>%
     arrange(.data$description) %>%
     expect_identical(
@@ -622,10 +622,10 @@ test_that("store_analysis() works", {
   )
   expect_equal(
     stored %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      select(description, first_year, last_year, duration) %>%
       arrange(description),
     ut.model_set %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      select(description, first_year, last_year, duration) %>%
       arrange(description)
   )
   expect_equal(
@@ -651,7 +651,7 @@ test_that("store_analysis() works", {
       ) %>%
       arrange(file_fingerprint),
     stored %>%
-      select_(~-id) %>%
+      select(-id) %>%
       mutate(
         analysis_date = as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
@@ -772,10 +772,10 @@ test_that("store_analysis() works", {
   )
   expect_equal(
     stored %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      select(description, first_year, last_year, duration) %>%
       arrange(description),
     ut.model_set %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
+      select(description, first_year, last_year, duration) %>%
       arrange(description)
   )
   expect_equal(
@@ -801,7 +801,7 @@ test_that("store_analysis() works", {
       ) %>%
       arrange(file_fingerprint),
     stored %>%
-      select_(~-id) %>%
+      select(-id) %>%
       mutate(
         analysis_date = as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")

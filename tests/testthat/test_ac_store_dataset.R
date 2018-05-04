@@ -45,9 +45,9 @@ test_that("stores new datasets", {
     )
   expect_identical(
     stored %>%
-      select_(~-import_date),
+      select(-import_date),
     ut.dataset %>%
-      select_(~-import_date)
+      select(-import_date)
   )
 
   expect_true(all(stored$import_date - ut.dataset$import_date < 0.1))
@@ -83,9 +83,9 @@ test_that("keeps metadata of existing fingerprints", {
     )
   expect_identical(
     stored %>%
-      select_(~-import_date),
+      select(-import_date),
     ut.dataset %>%
-      select_(~-import_date)
+      select(-import_date)
   )
 
   expect_true(all(stored$import_date - ut.dataset$import_date < 0.1))

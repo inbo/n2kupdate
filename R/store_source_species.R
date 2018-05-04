@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ rowwise inner_join left_join transmute_ arrange mutate
+#' @importFrom dplyr %>% select rowwise inner_join left_join transmute_ arrange mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -25,12 +25,12 @@ store_source_species <- function(
   assert_that(has_name(source_species, "datafield_local_id"))
   assert_that(has_name(source_species, "external_code"))
 
-  assert_that(noNA(select_(source_species)))
+  assert_that(noNA(source_species))
 
   assert_that(are_equal(anyDuplicated(source_species$local_id), 0L))
 
   dup <- source_species %>%
-    select_(~datafield_local_id, ~external_code) %>%
+    select(.data$datafield_local_id, .data$external_code) %>%
     anyDuplicated()
   if (dup > 0) {
     stop(

@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ select_ arrange rename mutate
+#' @importFrom dplyr %>% transmute_ select arrange rename mutate
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
 #' @importFrom tidyr gather_
@@ -44,7 +44,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     }
   )
   datasource_parameters <- datasource %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-.data$description, -.data$datasource_type) %>%
     colnames()
   datasource_parameter <- store_datasource_parameter(
     datasource_parameter = datasource_parameters,
@@ -64,7 +64,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
         rename(datasource_type = .data$fingerprint),
       by = c("dst" = "description")
     ) %>%
-    select_(~-dst) %>%
+    select(-.data$dst) %>%
     rowwise() %>%
     mutate(fingerprint = sha1(c(
       description = .data$description,
@@ -132,7 +132,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
         rename(datasource_type = .data$fingerprint),
       by = c("dst" = "description")
     ) %>%
-    select_(~-dst) %>%
+    select(-.data$dst) %>%
     gather_(
       key_col = "dpd",
       value_col = "value",
@@ -144,7 +144,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
         rename(dpd = .data$description, parameter = .data$fingerprint),
       by = "dpd"
     ) %>%
-    select_(~-dpd) %>%
+    select(-.data$dpd) %>%
     dbWriteTable(
       conn = conn,
       name = c("staging", paste0("datasource_value_", hash)),

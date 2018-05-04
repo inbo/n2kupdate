@@ -5,7 +5,7 @@
 #' @inheritParams store_model_set
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate rowwise inner_join left_join transmute_
+#' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute_
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_analysis <- function(
@@ -106,17 +106,17 @@ store_analysis <- function(
     }
   )
   staging.model_set %>%
-    select_(~local_id, model_set = ~fingerprint) %>%
+    select(.data$local_id, model_set = .data$fingerprint) %>%
     inner_join(
       staging.status %>%
-        select_(~description, status = ~fingerprint) %>%
+        select(.data$description, status = .data$fingerprint) %>%
         inner_join(
           analysis,
           by = c("description" = "status")
         ),
       by = c("local_id" = "model_set_local_id")
     ) %>%
-    select_(~-local_id) %>%
+    select(-.data$local_id) %>%
     mutate(analysis_date = as.POSIXct(.data$analysis_date)) %>%
     as.data.frame() %>%
     dbWriteTable(

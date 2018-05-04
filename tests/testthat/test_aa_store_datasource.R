@@ -43,19 +43,19 @@ test_that("input is suitable", {
   conn <- connect_ut_db()
   expect_error(
     ut.datasource %>%
-      select_(~-description) %>%
+      select(-description) %>%
       store_datasource(conn),
     "datasource does not have name description"
   )
   expect_error(
     ut.datasource %>%
-      select_(~-datasource_type) %>%
+      select(-datasource_type) %>%
       store_datasource(conn),
     "datasource does not have name datasource_type"
   )
   expect_error(
     ut.datasource %>%
-      select_(~-connect_method) %>%
+      select(-connect_method) %>%
       store_datasource(conn),
     "datasource does not have name connect_method"
   )
@@ -81,13 +81,13 @@ test_that("it stores new data correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datasource %>%
-    select_(description = ~datasource_type) %>%
+    select(description = datasource_type) %>%
     distinct() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type")
     )
   datasource_parameters <- ut.datasource %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-description, -datasource_type) %>%
     colnames() %>%
     sort()
   expect_identical(
@@ -103,7 +103,7 @@ test_that("it stores new data correctly", {
     )$description
   )
   ut.datasource %>%
-    select_(~description, ~datasource_type) %>%
+    select(description, datasource_type) %>%
     arrange(datasource_type, description) %>%
     expect_identical(
       dbGetQuery(
@@ -207,7 +207,7 @@ test_that("subfunctions work correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datasource %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-description, -datasource_type) %>%
     colnames() %>%
     c(ut) %>%
     unique() %>%
@@ -244,7 +244,7 @@ test_that("it stores updates data correctly", {
     nrow() %>%
     expect_identical(0L)
   datasource_parameters <- ut.datasource2 %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-description, -datasource_type) %>%
     colnames() %>%
     sort()
   data_frame(description = datasource_parameters) %>%

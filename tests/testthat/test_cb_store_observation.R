@@ -126,7 +126,7 @@ test_that("store_observation() works", {
       ut.observation %>%
         inner_join(
           ut.location %>%
-            select_(~local_id, location = ~description),
+            select(local_id, location = description),
           by = c("location_local_id" = "local_id")
         ) %>%
         inner_join(
@@ -135,7 +135,7 @@ test_that("store_observation() works", {
         ) %>%
         inner_join(
           ut.parameter %>%
-            select_(~local_id, parameter = ~description),
+            select(local_id, parameter = description),
           by = c("parameter_local_id" = "local_id")
         ),
       by = c(
@@ -235,7 +235,7 @@ test_that("store_observation() works", {
       ut.observation2 %>%
         inner_join(
           ut.location %>%
-            select_(~local_id, location = ~description),
+            select(local_id, location = description),
           by = c("location_local_id" = "local_id")
         ) %>%
         inner_join(

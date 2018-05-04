@@ -4,7 +4,7 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate select_ arrange
+#' @importFrom dplyr %>% rowwise mutate select arrange
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_type <- function(model_type, hash, clean = TRUE, conn){
@@ -22,10 +22,10 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
 
   if (has_name(model_type, "long_description")) {
     model_type <- model_type %>%
-      select_(~description, ~long_description)
+      select(.data$description, .data$long_description)
   } else {
     model_type <- model_type %>%
-      select_(~description) %>%
+      select(.data$description) %>%
       mutate(long_description = NA_character_)
   }
 
@@ -109,7 +109,7 @@ store_model_type <- function(model_type, hash, clean = TRUE, conn){
   }
 
   staging <- staging %>%
-    select_(~-id)
+    select(-.data$id)
   attr(staging, "SQL") <- sql.model_type
   attr(staging, "hash") <- hash
   return(staging)

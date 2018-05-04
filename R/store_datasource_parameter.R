@@ -7,7 +7,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>% rowwise select_ mutate
+#' @importFrom dplyr data_frame %>% rowwise select mutate
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_datasource_parameter <- function(
   datasource_parameter,
@@ -84,7 +84,7 @@ store_datasource_parameter <- function(
   }
 
   dsp <- dsp %>%
-    select_(~-id)
+    select(-.data$id)
   attr(dsp, "sql") <- datasource_parameter
   return(dsp)
 }

@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate rowwise inner_join left_join transmute_ arrange filter
+#' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute_ arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -29,12 +29,16 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
   assert_that(has_name(location, "datafield_local_id"))
   assert_that(has_name(location, "external_code"))
 
-  assert_that(noNA(select_(location, ~-parent_local_id)))
+  assert_that(noNA(select(location, -.data$parent_local_id)))
 
   assert_that(are_equal(anyDuplicated(location$local_id), 0L))
 
   dup <- location %>%
-    select_(~datafield_local_id, ~external_code, ~parent_local_id) %>%
+    select(
+      .data$datafield_local_id,
+      .data$external_code,
+      .data$parent_local_id
+    ) %>%
     anyDuplicated()
   if (dup > 0) {
     stop(
@@ -114,9 +118,9 @@ parent_local_id are found in location."
       left_join(
         location %>%
           filter(!is.na(.data$fingerprint)) %>%
-          select_(
-            parent_local_id = ~local_id,
-            parent_fingerprint = ~fingerprint
+          select(
+            parent_local_id = .data$local_id,
+            parent_fingerprint = .data$fingerprint
           ),
         by = "parent_local_id"
       ) %>%

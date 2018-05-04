@@ -212,7 +212,7 @@ test_that("store_anomaly() works", {
         ) %>%
         left_join(
           ut.parameter %>%
-            select_(~local_id, parameter = ~description),
+            select(local_id, parameter = description),
           by = c("parameter_local_id" = "local_id")
         ),
       by = c("analysis", "observation", "parameter")
@@ -299,7 +299,7 @@ test_that("store_anomaly() works", {
         ) %>%
         left_join(
           ut.parameter %>%
-            select_(~local_id, parameter = ~description),
+            select(local_id, parameter = description),
           by = c("parameter_local_id" = "local_id")
         ),
       by = c("analysis", "observation", "parameter")

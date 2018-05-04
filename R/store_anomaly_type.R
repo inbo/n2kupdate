@@ -5,14 +5,14 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate select_ arrange
+#' @importFrom dplyr %>% rowwise mutate select arrange
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
   anomaly_type <- character_df(anomaly_type)
   assert_that(has_name(anomaly_type, "local_id"))
   assert_that(has_name(anomaly_type, "description"))
-  assert_that(noNA(select_(anomaly_type, ~local_id, ~description)))
+  assert_that(noNA(select(anomaly_type, .data$local_id, .data$description)))
   if (missing(hash)) {
     hash <- sha1(list(anomaly_type, as.POSIXct(Sys.time())))
   } else {
@@ -28,7 +28,7 @@ store_anomaly_type <- function(anomaly_type, hash, conn, clean = TRUE){
   }
 
   anomaly_type <- anomaly_type %>%
-    select_(~local_id, ~description, ~long_description) %>%
+    select(.data$local_id, .data$description, .data$long_description) %>%
     rowwise() %>%
     mutate(fingerprint = sha1(c(description = .data$description))) %>%
     arrange(.data$fingerprint)

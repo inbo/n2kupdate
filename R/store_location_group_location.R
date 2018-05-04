@@ -5,7 +5,7 @@
 #' @inheritParams store_location_group
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ rowwise inner_join left_join transmute_ arrange
+#' @importFrom dplyr %>% select rowwise inner_join left_join transmute_ arrange
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -94,7 +94,7 @@ store_location_group_location <- function(
 
   # write to staging table
   location %>%
-    select_(location_local_id = ~local_id, ~fingerprint) %>%
+    select(location_local_id = .data$local_id, .data$fingerprint) %>%
     inner_join(location_group_location, by = "location_local_id") %>%
     transmute_(
       location = NA_integer_,

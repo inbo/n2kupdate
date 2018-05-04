@@ -5,7 +5,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>% rowwise mutate
+#' @importFrom dplyr data_frame %>% rowwise mutate select
 #' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_scheme <- function(scheme, hash, conn, clean = TRUE){
@@ -79,7 +79,7 @@ store_scheme <- function(scheme, hash, conn, clean = TRUE){
   }
 
   ds <- ds %>%
-    select_(~-id)
+    select(-.data$id)
   attr(ds, "SQL") <- scheme
   return(ds)
 }

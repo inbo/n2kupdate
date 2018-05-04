@@ -6,7 +6,7 @@
 #' @inheritParams store_language
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ rowwise inner_join left_join transmute_
+#' @importFrom dplyr %>% select rowwise inner_join left_join transmute_
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_source_species_species <- function(
@@ -24,10 +24,18 @@ store_source_species_species <- function(
   assert_that(has_name(source_species_species, "source_species_local_id"))
   assert_that(has_name(source_species_species, "species_local_id"))
 
-  assert_that(noNA(select_(source_species_species)))
+  assert_that(
+    noNA(
+      select(
+        source_species_species,
+        .data$species_local_id,
+        .data$source_species_local_id
+      )
+    )
+  )
 
   dup <- source_species_species %>%
-    select_(~species_local_id, ~source_species_local_id) %>%
+    select(.data$species_local_id, .data$source_species_local_id) %>%
     anyDuplicated()
   if (dup > 0) {
     stop(
@@ -94,15 +102,15 @@ found in source_species_species."
     )
   )
   staging.species %>%
-    select_(~scientific_name, ~nbn_key, ~fingerprint) %>%
+    select(.data$scientific_name, .data$nbn_key, .data$fingerprint) %>%
     inner_join(
       species %>%
-        select_(~scientific_name, ~nbn_key, ~local_id),
+        select(.data$scientific_name, .data$nbn_key, .data$local_id),
       by = c("scientific_name", "nbn_key")
     ) %>%
-    select_(
-      species_local_id = ~local_id,
-      species_fingerprint = ~fingerprint
+    select(
+      species_local_id = .data$local_id,
+      species_fingerprint = .data$fingerprint
     ) %>%
     inner_join(
       source_species_species,
@@ -110,13 +118,13 @@ found in source_species_species."
     ) %>%
     inner_join(
         staging.source_species %>%
-          select_(
-            source_species_local_id = ~local_id,
-            source_species_fingerprint = ~fingerprint
+          select(
+            source_species_local_id = .data$local_id,
+            source_species_fingerprint = .data$fingerprint
           ),
       by = "source_species_local_id"
     ) %>%
-    select_(~species_fingerprint, ~source_species_fingerprint) %>%
+    select(.data$species_fingerprint, .data$source_species_fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

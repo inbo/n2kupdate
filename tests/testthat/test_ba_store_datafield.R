@@ -35,31 +35,31 @@ test_that("input is suitable", {
   )
   expect_error(
     ut.datafield %>%
-      select_(~-local_id) %>%
+      select(-local_id) %>%
       store_datafield(conn),
     "datafield does not have name local_id"
   )
   expect_error(
     ut.datafield %>%
-      select_(~-datasource) %>%
+      select(-datasource) %>%
       store_datafield(conn),
     "datafield does not have name datasource"
   )
   expect_error(
     ut.datafield %>%
-      select_(~-datafield_type) %>%
+      select(-datafield_type) %>%
       store_datafield(conn),
     "datafield does not have name datafield_type"
   )
   expect_error(
     ut.datafield %>%
-      select_(~-table_name) %>%
+      select(-table_name) %>%
       store_datafield(conn),
     "datafield does not have name table_name"
   )
   expect_error(
     ut.datafield %>%
-      select_(~-primary_key) %>%
+      select(-primary_key) %>%
       store_datafield(conn),
     "datafield does not have name primary_key"
   )
@@ -83,13 +83,13 @@ test_that("it stores new data correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datafield %>%
-    select_(description = ~datafield_type) %>%
+    select(description = datafield_type) %>%
     distinct() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
     )
   ut.datafield %>%
-    select_(~-local_id) %>%
+    select(-local_id) %>%
     arrange(datasource, table_name, primary_key, datafield_type) %>%
     expect_identical(
       dbGetQuery(
@@ -142,7 +142,7 @@ test_that("it ignores existing data", {
   )
 
   ut.datafield %>%
-    select_(description = ~datafield_type) %>%
+    select(description = datafield_type) %>%
     distinct() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datafield_type")
@@ -150,7 +150,7 @@ test_that("it ignores existing data", {
 
   ut.datafield %>%
     character_df() %>%
-    select_(~-local_id) %>%
+    select(-local_id) %>%
     arrange(datasource, table_name, primary_key, datafield_type) %>%
     expect_identical(
       dbGetQuery(

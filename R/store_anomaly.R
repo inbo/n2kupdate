@@ -8,7 +8,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% anti_join rowwise mutate select_ arrange filter
+#' @importFrom dplyr %>% anti_join rowwise mutate select arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbCommit dbBegin
 store_anomaly <- function(
@@ -26,7 +26,7 @@ store_anomaly <- function(
   assert_that(has_name(anomaly, "observation"))
   assert_that(
     noNA(
-      select_(anomaly, ~anomaly_type_local_id, ~analysis)
+      select(anomaly, .data$anomaly_type_local_id, .data$analysis)
     )
   )
   both_na <- anomaly %>%
@@ -123,22 +123,22 @@ store_anomaly <- function(
   anomaly <- anomaly %>%
     inner_join(
       anomaly_type %>%
-        select_(
-          anomaly_type_local_id = ~local_id,
-          anomaly_type = ~fingerprint
+        select(
+          anomaly_type_local_id = .data$local_id,
+          anomaly_type = .data$fingerprint
         ),
       by = "anomaly_type_local_id"
     ) %>%
     left_join(
       parameter %>%
-        select_(
-          parameter_local_id = ~local_id,
-          parameter = ~fingerprint
+        select(
+          parameter_local_id = .data$local_id,
+          parameter = .data$fingerprint
         ),
       by = "parameter_local_id"
     ) %>%
-    select_(
-      ~anomaly_type, ~analysis, ~parameter, ~observation
+    select(
+      .data$anomaly_type, .data$analysis, .data$parameter, .data$observation
     ) %>%
     rowwise() %>%
     mutate(

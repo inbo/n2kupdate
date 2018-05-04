@@ -7,7 +7,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA is.flag are_equal
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ anti_join inner_join left_join rowwise mutate filter
+#' @importFrom dplyr %>% select anti_join inner_join left_join rowwise mutate filter
 #' @importFrom DBI dbReadTable dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 store_observation <- function(
   datafield,
@@ -31,7 +31,11 @@ store_observation <- function(
   assert_that(has_name(observation, "year"))
   assert_that(has_name(observation, "parameter_local_id"))
 
-  assert_that(noNA(select_(observation, ~local_id, ~location_local_id, ~year)))
+  assert_that(
+    noNA(
+      select(observation, .data$local_id, .data$location_local_id, .data$year)
+    )
+  )
 
   assert_that(are_equal(anyDuplicated(observation$local_id), 0L))
 
@@ -41,12 +45,12 @@ store_observation <- function(
     stop("provide either both datafield and external_code or neither")
   }
   dupl <- observation %>%
-    select_(
-      ~datafield_local_id,
-      ~external_code,
-      ~location_local_id,
-      ~year,
-      ~parameter_local_id
+    select(
+      .data$datafield_local_id,
+      .data$external_code,
+      .data$location_local_id,
+      .data$year,
+      .data$parameter_local_id
     ) %>%
     anyDuplicated()
   if (dupl > 0) {
@@ -114,9 +118,9 @@ store_observation <- function(
   observation_stored <- observation %>%
     inner_join(
       location_stored %>%
-        select_(
-          location_local_id = ~local_id,
-          location_fingerprint = ~fingerprint
+        select(
+          location_local_id = .data$local_id,
+          location_fingerprint = .data$fingerprint
         ),
       by = "location_local_id"
     )
@@ -133,9 +137,9 @@ store_observation <- function(
     observation_stored <- observation_stored %>%
       left_join(
         datafield_stored %>%
-          select_(
-            datafield_local_id = ~local_id,
-            datafield_fingerprint = ~fingerprint
+          select(
+            datafield_local_id = .data$local_id,
+            datafield_fingerprint = .data$fingerprint
           ),
         by = "datafield_local_id"
       )
@@ -156,9 +160,9 @@ store_observation <- function(
     observation_stored <- observation_stored %>%
       left_join(
         parameter_stored %>%
-          select_(
-            parameter_local_id = ~local_id,
-            parameter_fingerprint = ~fingerprint
+          select(
+            parameter_local_id = .data$local_id,
+            parameter_fingerprint = .data$fingerprint
           ),
         by = "parameter_local_id"
       )
@@ -178,19 +182,19 @@ store_observation <- function(
       ))
     )
   observation_stored %>%
-    select_(
-      ~local_id,
-      ~fingerprint,
-      datafield = ~datafield_fingerprint,
-      ~external_code,
-      location = ~location_fingerprint,
-      ~year,
-      parameter = ~parameter_fingerprint
+    select(
+      .data$local_id,
+      .data$fingerprint,
+      datafield = .data$datafield_fingerprint,
+      .data$external_code,
+      location = .data$location_fingerprint,
+      .data$year,
+      parameter = .data$parameter_fingerprint
     ) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
-      name = c("staging", paste0("observation_", hash)),
+      name = c("staging", paste0("observation_", hash))
     )
 
   observation.sql <- paste0("observation_", hash) %>%
@@ -252,7 +256,7 @@ store_observation <- function(
   }
 
   observation_stored <- observation_stored %>%
-    select_(~local_id, ~fingerprint)
+    select(.data$local_id, .data$fingerprint)
   attr(observation_stored, "hash") <- hash
   return(observation_stored)
 }

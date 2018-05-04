@@ -35,31 +35,31 @@ test_that("input is suitable", {
   )
   expect_error(
     ut.location %>%
-      select_(~-local_id) %>%
+      select(-local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name local_id"
   )
   expect_error(
     ut.location %>%
-      select_(~-description) %>%
+      select(-description) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name description"
   )
   expect_error(
     ut.location %>%
-      select_(~-parent_local_id) %>%
+      select(-parent_local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name parent_local_id"
   )
   expect_error(
     ut.location %>%
-      select_(~-datafield_local_id) %>%
+      select(-datafield_local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name datafield_local_id"
   )
   expect_error(
     ut.location %>%
-      select_(~-external_code) %>%
+      select(-external_code) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name external_code"
   )
@@ -143,7 +143,7 @@ test_that("it stores new data correctly", {
   test <- stored %>%
     left_join(
       stored %>%
-        select_(test = ~id, parent_local_id = ~local_id),
+        select(test = id, parent_local_id = local_id),
       by = "parent_local_id"
     )
   expect_identical(test$parent_location, test$test)
@@ -230,7 +230,7 @@ test_that("it updates the description of existing locations", {
   test <- stored %>%
     left_join(
       stored %>%
-        select_(test = ~id, parent_local_id = ~local_id),
+        select(test = id, parent_local_id = local_id),
       by = "parent_local_id"
     )
   expect_identical(test$parent_location, test$test)
