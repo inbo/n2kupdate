@@ -6,7 +6,7 @@
 #' @inheritParams store_language
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ filter_
+#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable dbBegin dbCommit dbRollback
 #' @export
 store_source_species_species <- function(

@@ -245,7 +245,7 @@ test_that("store_model_type works", {
     expect_true()
   public <- DBI::dbReadTable(conn, c("public", "model_type"))
   combined <- stored %>%
-    filter_(~!is.na(long_description)) %>%
+    filter(!is.na(long_description)) %>%
     left_join(
       public,
       by = c("fingerprint", "description")

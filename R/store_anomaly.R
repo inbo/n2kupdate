@@ -8,7 +8,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% anti_join rowwise mutate_ select_ arrange
+#' @importFrom dplyr %>% anti_join rowwise mutate_ select_ arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbCommit dbBegin
 store_anomaly <- function(
@@ -30,7 +30,7 @@ store_anomaly <- function(
     )
   )
   both_na <- anomaly %>%
-    filter_(~is.na(parameter_local_id), ~is.na(observation)) %>%
+    filter(is.na(.data$parameter_local_id), is.na(.data$observation)) %>%
     nrow()
   if (both_na > 0) {
     stop("each row must contain either parameter_local_id or observation")
@@ -104,7 +104,7 @@ store_anomaly <- function(
       }
     )
     nolink <- anomaly %>%
-      filter_(~!is.na(parameter_local_id)) %>%
+      filter(!is.na(.data$parameter_local_id)) %>%
       anti_join(
         parameter,
         by = c("parameter_local_id" = "local_id")

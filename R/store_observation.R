@@ -7,7 +7,7 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA is.flag are_equal
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ filter_ anti_join inner_join left_join rowwise mutate_
+#' @importFrom dplyr %>% select_ anti_join inner_join left_join rowwise mutate_ filter
 #' @importFrom DBI dbReadTable dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
 store_observation <- function(
   datafield,
@@ -123,7 +123,7 @@ store_observation <- function(
 
   if (!all(is.na(observation$datafield_local_id))) {
     at <- observation %>%
-      filter_(~!is.na(external_code)) %>%
+      filter(!is.na(.data$external_code)) %>%
       anti_join(datafield_stored, by = c("datafield_local_id" = "local_id")) %>%
       nrow()
     if (at > 0) {
@@ -146,7 +146,7 @@ store_observation <- function(
 
   if (!all(is.na(observation$parameter_local_id))) {
     at <- observation %>%
-      filter_(~!is.na(parameter_local_id)) %>%
+      filter(!is.na(.data$parameter_local_id)) %>%
       anti_join(parameter_stored, by = c("parameter_local_id" = "local_id")) %>%
       nrow()
     if (at > 0) {

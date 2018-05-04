@@ -4,7 +4,7 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ filter_ arrange
+#' @importFrom dplyr %>% select_ mutate_ rowwise inner_join left_join transmute_ arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
@@ -113,7 +113,7 @@ parent_local_id are found in location."
     location <- location %>%
       left_join(
         location %>%
-          filter_(~!is.na(fingerprint)) %>%
+          filter(!is.na(.data$fingerprint)) %>%
           select_(
             parent_local_id = ~local_id,
             parent_fingerprint = ~fingerprint
