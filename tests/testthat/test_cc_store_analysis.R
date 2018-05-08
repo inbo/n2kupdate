@@ -104,6 +104,11 @@ ut.analysis_dataset2 <- expand.grid(
   dataset = ut.dataset$fingerprint,
   stringsAsFactors = TRUE
 )
+ut.analysis_relation <- data.frame(
+  analysis = ut[1],
+  source_analysis = ut[2],
+  stringsAsFactors = FALSE
+)
 DBI::dbDisconnect(conn)
 
 test_that("store_status works", {
@@ -942,6 +947,163 @@ test_that("store_analysis_dataset works", {
     ut.analysis_dataset %>%
       arrange(analysis, dataset)
   )
+
+  DBI::dbDisconnect(conn)
+})
+
+test_that("store_analysis() handles analysis_relations", {
+  conn <- connect_ut_db()
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = "junk",
+      conn = conn
+    )
+  )
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = data.frame(junk = "junk"),
+      conn = conn
+    )
+  )
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = data.frame(analysis = "junk"),
+      conn = conn
+    )
+  )
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = data.frame(analysis = ut[1], source_analysis = ut[1]),
+      conn = conn
+    )
+  )
+  expect_is(
+    hash <- store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = ut.analysis_relation,
+      conn = conn
+    ),
+    "character"
+  )
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_relation_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  expect_identical(
+    dbGetQuery(conn = conn, "
+      SELECT
+        aa.file_fingerprint AS analysis,
+        sa.file_fingerprint AS source_analysis
+      FROM analysis_relation AS ar
+      INNER JOIN analysis AS aa ON ar.analysis = aa.id
+      INNER JOIN analysis AS sa ON ar.source_analysis = sa.id
+    ") %>%
+      anti_join(
+        x = ut.analysis_relation,
+        by = c("analysis", "source_analysis")
+      ) %>%
+      nrow(),
+    0L
+  )
+
+  expect_is(
+    hash <- store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = ut.analysis_relation,
+      hash = "junk",
+      clean = FALSE,
+      conn = conn
+    ),
+    "character"
+  )
+
+  expect_identical(hash, "junk")
+
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_relation_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_relation_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
 
   DBI::dbDisconnect(conn)
 })

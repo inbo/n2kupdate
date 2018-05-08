@@ -8,7 +8,7 @@ store_analysis_dataset(analysis, model_set, analysis_version, dataset,
   analysis_dataset, clean = TRUE, hash, conn)
 }
 \arguments{
-\item{analysis}{as data.frame with file_fingerprint, model_set_local_id, location_group, species_group, last_year, seed, analysis_version, analysis_date, status and status_fingerprint.}
+\item{analysis}{a data.frame with file_fingerprint, model_set_local_id, location_group, species_group, last_year, seed, analysis_version, analysis_date, status and status_fingerprint.}
 
 \item{model_set}{a data.frame with the model sets. Must have variables "local_id", "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.}
 

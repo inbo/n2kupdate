@@ -4,16 +4,18 @@
 \alias{store_analysis}
 \title{store source species in the database}
 \usage{
-store_analysis(analysis, model_set, analysis_version, conn, hash,
-  clean = TRUE)
+store_analysis(analysis, model_set, analysis_version, analysis_relation, conn,
+  hash, clean = TRUE)
 }
 \arguments{
-\item{analysis}{as data.frame with file_fingerprint, model_set_local_id, location_group, species_group, last_year, seed, analysis_version, analysis_date, status and status_fingerprint.}
+\item{analysis}{a data.frame with file_fingerprint, model_set_local_id, location_group, species_group, last_year, seed, analysis_version, analysis_date, status and status_fingerprint.}
 
 \item{model_set}{a data.frame with the model sets. Must have variables "local_id", "description", "first_year", "last_year" and "duration". The variable "long_description" is optional.}
 
 \item{analysis_version}{an n2kAnalysisVersion object. See
 \code{\link[n2kanalysis]{get_analysis_version}}}
+
+\item{analysis_relation}{an optional data.frame with analysis and source_analysis. analysis contains the file_fingerprint of the current analysis. source_analysis contains the file_fingerprint of the parent analysis}
 
 \item{conn}{a DBIconnection}
 
