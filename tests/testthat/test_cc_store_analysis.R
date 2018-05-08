@@ -1061,9 +1061,6 @@ test_that("store_analysis() handles analysis_relations", {
   c("staging", paste0("analysis_relation_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
-  c("staging", paste0("analysis_relation_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_true()
   c("staging", paste0("analysis_version_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
@@ -1084,6 +1081,9 @@ test_that("store_analysis() handles analysis_relations", {
     expect_true()
 
   c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_relation_", hash)) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   c("staging", paste0("analysis_version_", hash)) %>%
