@@ -33,7 +33,6 @@ Collate:
     'class_n2kAnalysisVersion.R'
     'connect_ut_db.R'
     'import_S3_classes.R'
-    'session_package.R'
     'sha1.R'
     'store.R'
     'store_analysis.R'
