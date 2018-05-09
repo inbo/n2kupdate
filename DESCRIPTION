@@ -34,7 +34,6 @@ Collate:
     'connect_ut_db.R'
     'import_S3_classes.R'
     'sha1.R'
-    'store.R'
     'store_analysis.R'
     'store_analysis_dataset.R'
     'store_analysis_version.R'
