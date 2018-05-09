@@ -1,12 +1,12 @@
 #' Store the analysis version in the database
 #' @param analysis_version an n2kAnalysisVersion object. See
-#'   \code{\link{get_analysis_version}}
+#'   \code{\link[n2kanalysis]{get_analysis_version}}
 #' @inheritParams store_datasource_parameter
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join
-#'   mutate_each_ funs
+#' @importFrom dplyr %>% rowwise select arrange inner_join
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable dbBegin dbCommit
 store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   assert_that(inherits(analysis_version, "n2kAnalysisVersion"))
@@ -23,17 +23,17 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
   rp <- analysis_version@RPackage
   avrp <- analysis_version@AnalysisVersionRPackage
 
-  av <- as.character(av)
-  rp <- as.character(rp)
-  avrp <- as.character(avrp)
+  av <- character_df(av)
+  rp <- character_df(rp)
+  avrp <- character_df(avrp)
 
   if (clean) {
     dbBegin(conn)
   }
 
   av %>%
-    select_(fingerprint = ~Fingerprint) %>%
-    arrange_(~fingerprint) %>%
+    select(fingerprint = .data$Fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -41,14 +41,13 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
       row.names = FALSE
     )
   rp %>%
-    select_(
-      fingerprint = ~Fingerprint,
-      description = ~Description,
-      version = ~Version,
-      origin = ~Origin,
-      revision = ~Revision
+    select(
+      fingerprint = .data$Fingerprint,
+      description = .data$Description,
+      version = .data$Version,
+      origin = .data$Origin
     ) %>%
-    arrange_(~fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -56,8 +55,11 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
       row.names = FALSE
     )
   avrp %>%
-    select_(analysis_version = ~AnalysisVersion, r_package = ~RPackage) %>%
-    arrange_(~analysis_version, ~r_package) %>%
+    select(
+      analysis_version = .data$AnalysisVersion,
+      r_package = .data$RPackage
+    ) %>%
+    arrange(.data$analysis_version, .data$r_package) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -89,13 +91,12 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
     dbGetQuery(conn = conn)
   sprintf("
     INSERT INTO public.r_package
-      (fingerprint, description, version, origin, revision)
+      (fingerprint, description, version, origin)
     SELECT
       s.fingerprint,
       s.description,
       s.version,
-      s.origin,
-      s.revision
+      s.origin
     FROM
       staging.%s AS s
     LEFT JOIN
@@ -107,6 +108,7 @@ store_analysis_version <- function(analysis_version, hash, clean = TRUE, conn){
     sql.rp
   ) %>%
     dbGetQuery(conn = conn)
+
   sprintf("
     INSERT INTO public.analysis_version_r_package
       (analysis_version, r_package)

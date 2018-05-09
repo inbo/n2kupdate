@@ -40,22 +40,22 @@ test_that("input is suitable", {
     store_datasource(datasource = ut.datasource, "junk"),
     "conn does not inherit from class DBIConnection"
   )
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     ut.datasource %>%
-      select_(~-description) %>%
+      select(-description) %>%
       store_datasource(conn),
     "datasource does not have name description"
   )
   expect_error(
     ut.datasource %>%
-      select_(~-datasource_type) %>%
+      select(-datasource_type) %>%
       store_datasource(conn),
     "datasource does not have name datasource_type"
   )
   expect_error(
     ut.datasource %>%
-      select_(~-connect_method) %>%
+      select(-connect_method) %>%
       store_datasource(conn),
     "datasource does not have name connect_method"
   )
@@ -63,7 +63,7 @@ test_that("input is suitable", {
 })
 
 test_that("it stores new data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_is(
     hash <- store_datasource(datasource = ut.datasource, conn = conn),
     "character"
@@ -81,13 +81,13 @@ test_that("it stores new data correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datasource %>%
-    select_(description = ~datasource_type) %>%
-    distinct_() %>%
+    select(description = datasource_type) %>%
+    distinct() %>%
     expect_identical(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type")
     )
   datasource_parameters <- ut.datasource %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-description, -datasource_type) %>%
     colnames() %>%
     sort()
   expect_identical(
@@ -103,8 +103,8 @@ test_that("it stores new data correctly", {
     )$description
   )
   ut.datasource %>%
-    select_(~description, ~datasource_type) %>%
-    arrange_(~datasource_type, ~description) %>%
+    select(description, datasource_type) %>%
+    arrange(datasource_type, description) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -123,13 +123,13 @@ test_that("it stores new data correctly", {
       ")
     )
   ut.datasource %>%
-    gather_(
-      key_col = "parameter",
-      value_col = "value",
-      gather_cols = datasource_parameters,
+    gather(
+      key = "parameter",
+      value = "value",
+      datasource_parameters,
       na.rm = TRUE
     ) %>%
-    arrange_(~description, ~datasource_type, ~parameter) %>%
+    arrange(description, datasource_type, parameter) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -169,7 +169,7 @@ test_that("it stores new data correctly", {
 })
 
 test_that("subfunctions work correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   # datasource_type
   expect_is(
@@ -207,7 +207,7 @@ test_that("subfunctions work correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.datasource %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-description, -datasource_type) %>%
     colnames() %>%
     c(ut) %>%
     unique() %>%
@@ -228,15 +228,15 @@ test_that("subfunctions work correctly", {
 })
 
 test_that("it stores updates data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_is(
     hash <- store_datasource(datasource = ut.datasource2, conn = conn),
     "character"
   )
 
   ut.datasource2 %>%
-    transmute_(description = ~as.character(datasource_type)) %>%
-    distinct_() %>%
+    transmute(description = as.character(.data$datasource_type)) %>%
+    distinct() %>%
     dplyr::anti_join(
       dbGetQuery(conn, "SELECT description FROM public.datasource_type"),
       by = "description"
@@ -244,7 +244,7 @@ test_that("it stores updates data correctly", {
     nrow() %>%
     expect_identical(0L)
   datasource_parameters <- ut.datasource2 %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-description, -datasource_type) %>%
     colnames() %>%
     sort()
   data_frame(description = datasource_parameters) %>%
@@ -264,11 +264,11 @@ test_that("it stores updates data correctly", {
     expect_identical(0L)
 
   ut.datasource2 %>%
-    transmute_(
-      description = ~as.character(description),
-      datasource_type = ~as.character(datasource_type)
+    transmute(
+      description = as.character(description),
+      datasource_type = as.character(datasource_type)
     ) %>%
-    arrange_(~datasource_type, ~description) %>%
+    arrange(datasource_type, description) %>%
     expect_identical(
       dbGetQuery(
         conn, "
@@ -287,14 +287,14 @@ test_that("it stores updates data correctly", {
       ")
     )
   ut.datasource2 %>%
-    as.character() %>%
-    gather_(
-      key_col = "parameter",
-      value_col = "value",
-      gather_cols = datasource_parameters,
+    character_df() %>%
+    gather(
+      key = "parameter",
+      value = "value",
+      datasource_parameters,
       na.rm = TRUE
     ) %>%
-    arrange_(~description, ~datasource_type, ~parameter) %>%
+    arrange(description, datasource_type, parameter) %>%
     expect_identical(
       dbGetQuery(
         conn, "

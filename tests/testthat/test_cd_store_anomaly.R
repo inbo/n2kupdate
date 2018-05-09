@@ -1,6 +1,7 @@
 context("store_anomaly")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
+observation <- DBI::dbReadTable(conn, "observation")$fingerprint[1]
 ut.anomaly_type <- data.frame(
   local_id = ut,
   description = ut,
@@ -11,14 +12,6 @@ ut.anomaly_type2 <- data.frame(
   description = ut,
   long_description = c(ut[1], NA)
 )
-ut.datafield <- data.frame(
-  local_id = ut,
-  datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
-  table_name = ut,
-  primary_key = ut,
-  datafield_type = "character",
-  stringsAsFactors = FALSE
-)
 ut.parameter <- data.frame(
   local_id = ut,
   description = ut,
@@ -27,28 +20,28 @@ ut.parameter <- data.frame(
 )
 ut.anomaly <- data.frame(
   anomaly_type_local_id = ut,
-  datafield_local_id = ut,
   analysis = ut,
+  observation = observation,
   parameter_local_id = ut,
   stringsAsFactors = FALSE
 )
 ut.anomaly2 <- data.frame(
   anomaly_type_local_id = ut,
-  datafield_local_id = ut,
   analysis = ut,
-  parameter_local_id = ut,
+  observation = c(observation, NA),
+  parameter_local_id = c(NA, ut[1]),
   stringsAsFactors = TRUE
 )
 ut.anomaly_wrong <- data.frame(
   anomaly_type_local_id = "junk",
-  datafield_local_id = ut,
   analysis = ut,
+  observation = observation,
   parameter_local_id = ut,
   stringsAsFactors = FALSE
 )
 ut.anomaly_wrong2 <- data.frame(
   anomaly_type_local_id = ut,
-  datafield_local_id = "junk",
+  observation = "junk",
   analysis = ut,
   parameter_local_id = ut,
   stringsAsFactors = FALSE
@@ -56,7 +49,7 @@ ut.anomaly_wrong2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("store_anomaly_type() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     output <- store_anomaly_type(
@@ -65,7 +58,7 @@ test_that("store_anomaly_type() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_is(
     hash <- attr(output, "hash"),
     "character"
@@ -98,7 +91,7 @@ test_that("store_anomaly_type() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_is(
     hash <- attr(output, "hash"),
     "character"
@@ -120,7 +113,7 @@ test_that("store_anomaly_type() works", {
   ) %>%
     dplyr::full_join(
       ut.anomaly_type2 %>%
-        as.character(),
+        character_df(),
       by = "description"
     )
 
@@ -131,13 +124,12 @@ test_that("store_anomaly_type() works", {
 })
 
 test_that("store_anomaly() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     output <- store_anomaly(
       anomaly = ut.anomaly_wrong,
       anomaly_type = ut.anomaly_type,
-      datafield = ut.datafield,
       parameter = ut.parameter,
       conn = conn
     ),
@@ -147,24 +139,22 @@ test_that("store_anomaly() works", {
     output <- store_anomaly(
       anomaly = ut.anomaly_wrong2,
       anomaly_type = ut.anomaly_type,
-      datafield = ut.datafield,
       parameter = ut.parameter,
       conn = conn
     ),
-    "All anomaly\\$datafield_local_id must be present in datafield\\$local_id"
+    "observations not in database: junk"
   )
 
   expect_is(
     output <- store_anomaly(
       anomaly = ut.anomaly,
       anomaly_type = ut.anomaly_type,
-      datafield = ut.datafield,
       parameter = ut.parameter,
       conn = conn
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_is(
     hash <- attr(output, "hash"),
     "character"
@@ -176,12 +166,6 @@ test_that("store_anomaly() works", {
   c("staging", paste0("anomaly_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
-  c("staging", paste0("datafield_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_false()
-  c("staging", paste0("datafield_type_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_false()
   c("staging", paste0("parameter_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
@@ -192,46 +176,46 @@ test_that("store_anomaly() works", {
       ano.fingerprint,
       ana.file_fingerprint AS analysis,
       anot.description AS anomaly_type,
-      ds.fingerprint AS datasource,
-      df.table_name,
-      df.primary_key
+      obs.fingerprint AS observation,
+      para.description AS parameter
     FROM
       (
         (
-          public.anomaly as ano
+          (
+            public.anomaly as ano
+          INNER JOIN
+            public.analysis AS ana
+          ON
+            ano.analysis = ana.id
+          )
         INNER JOIN
-          public.analysis AS ana
+          public.anomaly_type AS anot
         ON
-          ano.analysis = ana.id
+          ano.anomaly_type = anot.id
         )
-      INNER JOIN
-        public.anomaly_type AS anot
+      LEFT JOIN
+        public.observation AS obs
       ON
-        ano.anomaly_type = anot.id
+        ano.observation = obs.id
       )
-    INNER JOIN
-      (
-        public.datafield AS df
-      INNER JOIN
-        public.datasource AS ds
-      ON
-        df.datasource = ds.id
-      )
+    LEFT JOIN
+      public.parameter AS para
     ON
-      ano.datafield = df.id
+      ano.parameter = para.id
     "
   ) %>%
     dplyr::full_join(
       ut.anomaly %>%
         inner_join(
-          ut.datafield,
-          by = c("datafield_local_id" = "local_id")
-        ) %>%
-        inner_join(
           ut.anomaly_type,
           by = c("anomaly_type_local_id" = "local_id")
+        ) %>%
+        left_join(
+          ut.parameter %>%
+            select(local_id, parameter = description),
+          by = c("parameter_local_id" = "local_id")
         ),
-      by = c("analysis", "datasource", "table_name", "primary_key")
+      by = c("analysis", "observation", "parameter")
     )
   expect_identical(nrow(stored), nrow(ut.anomaly))
   expect_false(any(is.na(stored$id)))
@@ -240,7 +224,6 @@ test_that("store_anomaly() works", {
     output <- store_anomaly(
       anomaly = ut.anomaly2,
       anomaly_type = ut.anomaly_type,
-      datafield = ut.datafield,
       parameter = ut.parameter,
       hash = "junk",
       clean = FALSE,
@@ -248,7 +231,7 @@ test_that("store_anomaly() works", {
     ),
     "data.frame"
   )
-  expect_true(has_attr(output, "SQL"))
+  expect_true(assertthat::has_attr(output, "SQL"))
   expect_identical(
     hash <- attr(output, "hash"),
     "junk"
@@ -260,12 +243,6 @@ test_that("store_anomaly() works", {
   c("staging", paste0("anomaly_type_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
-  c("staging", paste0("datafield_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_true()
-  c("staging", paste0("datafield_type_", hash)) %>%
-    DBI::dbExistsTable(conn = conn) %>%
-    expect_true()
   c("staging", paste0("parameter_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
@@ -273,12 +250,6 @@ test_that("store_anomaly() works", {
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   c("staging", paste0("anomaly_type_", hash)) %>%
-    DBI::dbRemoveTable(conn = conn) %>%
-    expect_true()
-  c("staging", paste0("datafield_", hash)) %>%
-    DBI::dbRemoveTable(conn = conn) %>%
-    expect_true()
-  c("staging", paste0("datafield_type_", hash)) %>%
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   c("staging", paste0("parameter_", hash)) %>%
@@ -291,48 +262,49 @@ test_that("store_anomaly() works", {
       ano.fingerprint,
       ana.file_fingerprint AS analysis,
       anot.description AS anomaly_type,
-      ds.fingerprint AS datasource,
-      df.table_name,
-      df.primary_key
+      obs.fingerprint AS observation,
+      para.description AS parameter
     FROM
       (
         (
-          public.anomaly as ano
+          (
+            public.anomaly as ano
+          INNER JOIN
+            public.analysis AS ana
+          ON
+            ano.analysis = ana.id
+          )
         INNER JOIN
-          public.analysis AS ana
+          public.anomaly_type AS anot
         ON
-          ano.analysis = ana.id
+          ano.anomaly_type = anot.id
         )
-      INNER JOIN
-        public.anomaly_type AS anot
+      LEFT JOIN
+        public.observation AS obs
       ON
-        ano.anomaly_type = anot.id
+        ano.observation = obs.id
       )
-    INNER JOIN
-      (
-        public.datafield AS df
-      INNER JOIN
-        public.datasource AS ds
-      ON
-        df.datasource = ds.id
-      )
+    LEFT JOIN
+      public.parameter AS para
     ON
-      ano.datafield = df.id
+      ano.parameter = para.id
     "
   ) %>%
-    dplyr::full_join(
-      ut.anomaly %>%
-        inner_join(
-          ut.datafield,
-          by = c("datafield_local_id" = "local_id")
-        ) %>%
+    dplyr::right_join(
+      ut.anomaly2 %>%
+        character_df() %>%
         inner_join(
           ut.anomaly_type,
           by = c("anomaly_type_local_id" = "local_id")
+        ) %>%
+        left_join(
+          ut.parameter %>%
+            select(local_id, parameter = description),
+          by = c("parameter_local_id" = "local_id")
         ),
-      by = c("analysis", "datasource", "table_name", "primary_key")
+      by = c("analysis", "observation", "parameter")
     )
-  expect_identical(nrow(stored), nrow(ut.anomaly))
+  expect_identical(nrow(stored), nrow(ut.anomaly2))
   expect_false(any(is.na(stored$id)))
 
   DBI::dbDisconnect(conn)

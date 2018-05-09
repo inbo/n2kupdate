@@ -5,11 +5,12 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs rename_
+#' @importFrom dplyr %>% transmute select arrange  mutate
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
-#' @importFrom tidyr gather_
+#' @importFrom tidyr gather
 store_species <- function(species, language, conn, hash, clean = TRUE){
-  assert_that(inherits(species, "data.frame"))
+  species <- character_df(species)
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(species, "scientific_name"))
@@ -18,8 +19,6 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   assert_that(are_equal(anyDuplicated(species$scientific_name), 0L))
   assert_that(are_equal(anyDuplicated(species$nbn_key), 0L))
   assert_that(are_equal(anyDuplicated(species$local_id), 0L))
-
-  species <- as.character(species)
 
   if (missing(hash)) {
     hash <- sha1(list(species, language, as.POSIXct(Sys.time())))
@@ -45,7 +44,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   )
 
   lang.code <- species %>%
-    select_(~-local_id, ~-scientific_name, ~-nbn_key) %>%
+    select(-.data$local_id, -.data$scientific_name, -.data$nbn_key) %>%
     colnames()
   if (!all(lang.code %in% language$code)) {
     if (clean) {
@@ -58,17 +57,17 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
   }
 
   sp <- species %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~scientific_name,
-      ~nbn_key
+      .data$scientific_name,
+      .data$nbn_key
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(
-      scientific_name = scientific_name,
-      nbn_key = nbn_key
+    mutate(fingerprint = sha1(c(
+      scientific_name = .data$scientific_name,
+      nbn_key = .data$nbn_key
     ))) %>%
-    arrange_(~fingerprint)
+    arrange(.data$fingerprint)
   sp %>%
     as.data.frame() %>%
     dbWriteTable(
@@ -117,13 +116,13 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
     dbGetQuery(conn = conn)
 
   sp %>%
-    select_(~-id) %>%
+    select(-.data$id) %>%
     inner_join(species, by = c("scientific_name", "nbn_key")) %>%
-    select_(~-scientific_name, ~-nbn_key) %>%
-    gather_(
-      key_col = "code",
-      value_col = "description",
-      gather_cols = lang.code
+    select(-.data$scientific_name, -.data$nbn_key) %>%
+    gather(
+      key = "code",
+      value = "description",
+      lang.code
     ) %>%
     dbWriteTable(
       conn = conn,
@@ -233,7 +232,7 @@ store_species <- function(species, language, conn, hash, clean = TRUE){
     dbCommit(conn)
   }
   sp %>%
-    select_(~-id)
+    select(-.data$id)
   attr(sp, "hash") <- hash
   return(sp)
 }

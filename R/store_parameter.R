@@ -5,12 +5,14 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>% rowwise mutate_ right_join
+#' @importFrom dplyr %>% transmute filter mutate select right_join bind_rows arrange
+#' @importFrom rlang .data
+#' @importFrom purrr map2_chr
 #' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 #' @importFrom stats na.omit
 store_parameter <- function(parameter, hash, conn, clean = TRUE){
-  assert_that(inherits(parameter, "data.frame"))
+  parameter <- character_df(parameter)
   assert_that(has_name(parameter, "local_id"))
   assert_that(has_name(parameter, "parent_parameter_local_id"))
   assert_that(has_name(parameter, "description"))
@@ -29,53 +31,57 @@ store_parameter <- function(parameter, hash, conn, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  output <- parameter %>%
-    as.character() %>%
-    rowwise() %>%
-    transmute_(
-      ~local_id,
-      ~parent_parameter_local_id,
-      ~description,
-      parent_parameter = ~NA_character_,
-      fingerprint = ~ifelse(
-        is.na(parent_parameter_local_id),
-        sha1(c(description = description, parent_parameter = NA)),
-        NA
+  parameter %>%
+    transmute(
+      .data$local_id,
+      .data$parent_parameter_local_id,
+      .data$description,
+      parent_parameter = NA_character_,
+      fingerprint = map2_chr(
+        .data$description,
+        .data$parent_parameter_local_id,
+        ~ifelse(
+          is.na(.y),
+          sha1(c(description = .x, parent_parameter = NA)),
+          NA
+        )
       ),
       level = 1
-    )
+    ) -> output
   to_do <- sum(is.na(output$fingerprint))
   while (to_do > 0) {
-    done <- output %>%
-      filter_(~!is.na(fingerprint))
-    remainder <- output %>%
-      filter_(~is.na(fingerprint)) %>%
-      mutate_(level = ~level + 1)
-    output <- done %>%
-      select_(
-        parent_parameter_local_id = ~local_id,
-        parent_parameter2 = ~fingerprint
+    output %>%
+      filter(!is.na(.data$fingerprint)) -> done
+    output %>%
+      filter(is.na(.data$fingerprint)) %>%
+      mutate(level = .data$level + 1) -> remainder
+    done %>%
+      select(
+        parent_parameter_local_id = .data$local_id,
+        parent_parameter2 = .data$fingerprint
       ) %>%
       right_join(
         remainder,
         by = "parent_parameter_local_id"
       ) %>%
-      mutate_(
-        parent_parameter = ~ifelse(
-          is.na(parent_parameter2),
-          parent_parameter,
-          parent_parameter2
+      mutate(
+        parent_parameter = ifelse(
+          is.na(.data$parent_parameter2),
+          .data$parent_parameter,
+          .data$parent_parameter2
         ),
-        fingerprint = ~ifelse(
-          is.na(parent_parameter),
-          NA,
-          sha1(
-            c(description = description, parent_parameter = parent_parameter)
+        fingerprint = map2_chr(
+          .data$description,
+          .data$parent_parameter,
+          ~ifelse(
+            is.na(.y),
+            NA,
+            sha1(c(description = .x, parent_parameter = .y))
           )
         )
       ) %>%
-      select_(~-parent_parameter2) %>%
-      bind_rows(done)
+      select(-.data$parent_parameter2) %>%
+      bind_rows(done) -> output
     current <- sum(is.na(output$fingerprint))
     if (current == to_do) {
       stop("Error linking parameters to their parent.")
@@ -87,8 +93,13 @@ store_parameter <- function(parameter, hash, conn, clean = TRUE){
     dbBegin(conn)
   }
   output %>%
-    arrange_(~level, ~fingerprint) %>%
-    select_(~description, ~parent_parameter, ~fingerprint, ~level) %>%
+    arrange(.data$level, .data$fingerprint) %>%
+    select(
+      .data$description,
+      .data$parent_parameter,
+      .data$fingerprint,
+      .data$level
+    ) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -142,8 +153,8 @@ store_parameter <- function(parameter, hash, conn, clean = TRUE){
     dbCommit(conn)
   }
 
-  output <- output %>%
-    select_(~local_id, ~fingerprint)
+  output %>%
+    select(.data$local_id, .data$fingerprint) -> output
   attr(output, "hash") <- hash
   attr(output, "SQL") <- parameter.sql
   return(output)

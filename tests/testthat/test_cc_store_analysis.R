@@ -1,5 +1,6 @@
 context("store_analysis")
-conn <- connect_db()
+if (requireNamespace("n2kanalysis")) {
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.status <- ut
 ut.model_type <- data.frame(
@@ -49,12 +50,12 @@ ut.model_set2e <- data.frame(
   duration = c(110, 2),
   stringsAsFactors = FALSE
 )
-ut.analysis_version <- get_analysis_version(sessionInfo())
+ut.analysis_version <- n2kanalysis::get_analysis_version(sessionInfo())
 ut.analysis_version2 <- ut.analysis_version
 ut.analysis_version2@AnalysisVersion <- ut.analysis_version2@AnalysisVersion %>%
-  mutate_(Fingerprint = ~factor(Fingerprint))
+  mutate(Fingerprint = factor(Fingerprint))
 ut.analysis_version2@RPackage <- ut.analysis_version2@RPackage %>%
-  mutate_(Fingerprint = ~factor(Fingerprint))
+  mutate(Fingerprint = factor(Fingerprint))
 ut.analysis_version2@AnalysisVersionRPackage <-
   ut.analysis_version2@AnalysisVersionRPackage %>%
     dplyr::mutate_all(funs(factor))
@@ -103,10 +104,15 @@ ut.analysis_dataset2 <- expand.grid(
   dataset = ut.dataset$fingerprint,
   stringsAsFactors = TRUE
 )
+ut.analysis_relation <- data.frame(
+  analysis = ut[1],
+  source_analysis = ut[2],
+  stringsAsFactors = FALSE
+)
 DBI::dbDisconnect(conn)
 
 test_that("store_status works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored <- store_status(status = c(ut.status, ut.status), conn = conn),
@@ -122,12 +128,12 @@ test_that("store_status works", {
   public <- DBI::dbReadTable(conn, c("public", "status"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint),
+      select(fingerprint, description) %>%
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint)
+      select(fingerprint, description) %>%
+      arrange(fingerprint)
   )
   expect_true(all(ut.status %in% public$description))
 
@@ -154,12 +160,12 @@ test_that("store_status works", {
   public <- DBI::dbReadTable(conn, c("public", "status"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint),
+      select(fingerprint, description) %>%
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description) %>%
-      arrange_(~fingerprint)
+      select(fingerprint, description) %>%
+      arrange(fingerprint)
   )
   expect_true(all(ut.status %in% public$description))
 
@@ -167,7 +173,7 @@ test_that("store_status works", {
 })
 
 test_that("store_model_type works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored <- store_model_type(model_type = ut.model_type, conn = conn),
@@ -183,12 +189,12 @@ test_that("store_model_type works", {
   public <- DBI::dbReadTable(conn, c("public", "model_type"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint),
+      select(fingerprint, description, long_description) %>%
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint)
+      select(fingerprint, description, long_description) %>%
+      arrange(fingerprint)
   )
 
   expect_is(
@@ -214,12 +220,12 @@ test_that("store_model_type works", {
   public <- DBI::dbReadTable(conn, c("public", "model_type"))
   expect_equivalent(
     public %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint),
+      select(fingerprint, description, long_description) %>%
+      arrange(fingerprint),
     stored %>%
       as.data.frame() %>%
-      select_(~fingerprint, ~description, ~long_description) %>%
-      arrange_(~fingerprint)
+      select(fingerprint, description, long_description) %>%
+      arrange(fingerprint)
   )
 
   expect_is(
@@ -244,7 +250,7 @@ test_that("store_model_type works", {
     expect_true()
   public <- DBI::dbReadTable(conn, c("public", "model_type"))
   combined <- stored %>%
-    filter_(~!is.na(long_description)) %>%
+    filter(!is.na(long_description)) %>%
     left_join(
       public,
       by = c("fingerprint", "description")
@@ -262,7 +268,7 @@ test_that("store_model_type works", {
 })
 
 test_that("store_model_set works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_model_set(model_set = ut.model_set1e, conn = conn),
@@ -372,6 +378,10 @@ test_that("store_model_set works", {
     nrow() %>%
     expect_identical(0L)
   ut.model_set2 %>%
+    mutate_at(
+      .vars = c("description", "long_description"),
+      .funs = as.character
+    ) %>%
     dplyr::anti_join(
       public,
       by = c(
@@ -385,7 +395,7 @@ test_that("store_model_set works", {
 })
 
 test_that("store_analysis_version", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     hash <- store_analysis_version(
@@ -410,8 +420,7 @@ test_that("store_analysis_version", {
       pav.fingerprint AS analysis_version,
       prp.description,
       prp.version,
-      prp.origin,
-      prp.revision
+      prp.origin
     FROM
     (
       public.analysis_version AS pav
@@ -434,14 +443,17 @@ test_that("store_analysis_version", {
       ut.analysis_version@RPackage,
       by = c("RPackage" = "Fingerprint")
     ) %>%
-    select_(
-      analysis_version = ~Fingerprint,
-      description = ~Description,
-      version = ~Version,
-      origin = ~Origin,
-      revision = ~Revision
+    select(
+      analysis_version = Fingerprint,
+      description = Description,
+      version = Version,
+      origin = Origin
     ) %>%
-    expect_identical(stored)
+    arrange(.data$description) %>%
+    expect_identical(
+      stored %>%
+        arrange(.data$description)
+    )
 
   expect_is(
     hash <- store_analysis_version(
@@ -478,8 +490,7 @@ test_that("store_analysis_version", {
       pav.fingerprint AS analysis_version,
       prp.description,
       prp.version,
-      prp.origin,
-      prp.revision
+      prp.origin
     FROM
     (
       public.analysis_version AS pav
@@ -502,20 +513,23 @@ test_that("store_analysis_version", {
       ut.analysis_version@RPackage,
       by = c("RPackage" = "Fingerprint")
     ) %>%
-    select_(
-      analysis_version = ~Fingerprint,
-      description = ~Description,
-      version = ~Version,
-      origin = ~Origin,
-      revision = ~Revision
+    select(
+      analysis_version = Fingerprint,
+      description = Description,
+      version = Version,
+      origin = Origin
     ) %>%
-    expect_identical(stored)
+    arrange(.data$description) %>%
+    expect_identical(
+      stored %>%
+        arrange(.data$description)
+    )
 
   DBI::dbDisconnect(conn)
 })
 
 test_that("store_analysis() works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_analysis(
@@ -613,11 +627,11 @@ test_that("store_analysis() works", {
   )
   expect_equal(
     stored %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description),
+      select(description, first_year, last_year, duration) %>%
+      arrange(description),
     ut.model_set %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description)
+      select(description, first_year, last_year, duration) %>%
+      arrange(description)
   )
   expect_equal(
     ut.analysis %>%
@@ -625,29 +639,29 @@ test_that("store_analysis() works", {
         ut.model_set,
         by = c("model_set_local_id" = "local_id")
       ) %>%
-      transmute_(
-        ~file_fingerprint,
-        ~description,
-        ~first_year,
-        last_year = ~last_year.y,
-        ~duration,
-        ~location_group,
-        ~species_group,
-        this_year = ~last_year.x,
-        ~seed,
-        ~analysis_version,
-        analysis_date = ~format(analysis_date, format = "%F %T %z"),
-        ~status,
-        ~status_fingerprint
+      transmute(
+        file_fingerprint,
+        description,
+        first_year,
+        last_year = last_year.y,
+        duration,
+        location_group,
+        species_group,
+        this_year = last_year.x,
+        seed,
+        analysis_version,
+        analysis_date = format(analysis_date, format = "%F %T %z"),
+        status,
+        status_fingerprint
       ) %>%
-      arrange_(~file_fingerprint),
+      arrange(file_fingerprint),
     stored %>%
-      select_(~-id) %>%
-      mutate_(
-        analysis_date = ~as.POSIXct(analysis_date) %>%
+      select(-id) %>%
+      mutate(
+        analysis_date = as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
       ) %>%
-      arrange_(~file_fingerprint)
+      arrange(file_fingerprint)
   )
 
   expect_is(
@@ -763,11 +777,11 @@ test_that("store_analysis() works", {
   )
   expect_equal(
     stored %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description),
+      select(description, first_year, last_year, duration) %>%
+      arrange(description),
     ut.model_set %>%
-      select_(~description, ~first_year, ~last_year, ~duration) %>%
-      arrange_(~description)
+      select(description, first_year, last_year, duration) %>%
+      arrange(description)
   )
   expect_equal(
     ut.analysis %>%
@@ -775,36 +789,36 @@ test_that("store_analysis() works", {
         ut.model_set,
         by = c("model_set_local_id" = "local_id")
       ) %>%
-      transmute_(
-        ~file_fingerprint,
-        ~description,
-        ~first_year,
-        last_year = ~last_year.y,
-        ~duration,
-        ~location_group,
-        ~species_group,
-        this_year = ~last_year.x,
-        ~seed,
-        ~analysis_version,
-        analysis_date = ~format(analysis_date, format = "%F %T %z"),
-        ~status,
-        ~status_fingerprint
+      transmute(
+        file_fingerprint,
+        description,
+        first_year,
+        last_year = last_year.y,
+        duration,
+        location_group,
+        species_group,
+        this_year = last_year.x,
+        seed,
+        analysis_version,
+        analysis_date = format(analysis_date, format = "%F %T %z"),
+        status,
+        status_fingerprint
       ) %>%
-      arrange_(~file_fingerprint),
+      arrange(file_fingerprint),
     stored %>%
-      select_(~-id) %>%
-      mutate_(
-        analysis_date = ~as.POSIXct(analysis_date) %>%
+      select(-id) %>%
+      mutate(
+        analysis_date = as.POSIXct(analysis_date) %>%
           format(format = "%F %T %z")
       ) %>%
-      arrange_(~file_fingerprint)
+      arrange(file_fingerprint)
   )
 
   DBI::dbDisconnect(conn)
 })
 
 test_that("store_analysis_dataset works", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     hash <- store_analysis_dataset(
@@ -865,9 +879,9 @@ test_that("store_analysis_dataset works", {
   )
   expect_equivalent(
     stored %>%
-      arrange_(~analysis, ~dataset),
+      arrange(analysis, dataset),
     ut.analysis_dataset %>%
-      arrange_(~analysis, ~dataset)
+      arrange(analysis, dataset)
   )
 
   expect_is(
@@ -929,10 +943,168 @@ test_that("store_analysis_dataset works", {
   )
   expect_equivalent(
     stored %>%
-      arrange_(~analysis, ~dataset),
+      arrange(analysis, dataset),
     ut.analysis_dataset %>%
-      arrange_(~analysis, ~dataset)
+      arrange(analysis, dataset)
   )
 
   DBI::dbDisconnect(conn)
 })
+
+test_that("store_analysis() handles analysis_relations", {
+  conn <- connect_ut_db()
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = "junk",
+      conn = conn
+    )
+  )
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = data.frame(junk = "junk"),
+      conn = conn
+    )
+  )
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = data.frame(analysis = "junk"),
+      conn = conn
+    )
+  )
+  expect_error(
+    store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = data.frame(analysis = ut[1], source_analysis = ut[1]),
+      conn = conn
+    )
+  )
+  expect_is(
+    hash <- store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = ut.analysis_relation,
+      conn = conn
+    ),
+    "character"
+  )
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_relation_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  expect_identical(
+    dbGetQuery(conn = conn, "
+      SELECT
+        aa.file_fingerprint AS analysis,
+        sa.file_fingerprint AS source_analysis
+      FROM analysis_relation AS ar
+      INNER JOIN analysis AS aa ON ar.analysis = aa.id
+      INNER JOIN analysis AS sa ON ar.source_analysis = sa.id
+    ") %>%
+      anti_join(
+        x = ut.analysis_relation,
+        by = c("analysis", "source_analysis")
+      ) %>%
+      nrow(),
+    0L
+  )
+
+  expect_is(
+    hash <- store_analysis(
+      analysis = ut.analysis,
+      model_set = ut.model_set,
+      analysis_version = ut.analysis_version,
+      analysis_relation = ut.analysis_relation,
+      hash = "junk",
+      clean = FALSE,
+      conn = conn
+    ),
+    "character"
+  )
+
+  expect_identical(hash, "junk")
+
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_relation_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_true()
+
+  c("staging", paste0("analysis_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_relation_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("analysis_version_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("avrp_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_set_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("model_type_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("r_package_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+  c("staging", paste0("status_", hash)) %>%
+    DBI::dbRemoveTable(conn = conn) %>%
+    expect_true()
+
+  DBI::dbDisconnect(conn)
+})
+}

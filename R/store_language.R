@@ -4,10 +4,10 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
+#' @importFrom dplyr %>% rowwise mutate
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_language <- function(language, hash, conn, clean = TRUE){
-  assert_that(inherits(language, "data.frame"))
+  language <- character_df(language)
   assert_that(noNA(language))
   assert_that(has_name(language, "code"))
   assert_that(has_name(language, "description"))
@@ -27,16 +27,16 @@ store_language <- function(language, hash, conn, clean = TRUE){
   assert_that(are_equal(anyDuplicated(language$code), 0L))
   assert_that(are_equal(anyDuplicated(language$description), 0L))
 
-  language <- as.character(language)
-
   language %>%
-    transmute_(
-      id = ~NA_integer_,
-      ~code,
-      ~description
+    transmute(
+      id = NA_integer_,
+      .data$code,
+      .data$description
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(code = code, description = description))) %>%
+    mutate(
+      fingerprint = sha1(c(code = .data$code, description = .data$description))
+    ) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

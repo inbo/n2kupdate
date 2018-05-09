@@ -8,7 +8,7 @@
 #' @inheritParams store_species_group
 #' @export
 #' @importFrom assertthat assert_that has_name noNA
-#' @importFrom dplyr %>% select_ mutate_each_ funs inner_join
+#' @importFrom dplyr %>% select inner_join
 #' @importFrom digest sha1
 #' @importFrom DBI dbBegin dbCommit dbRollback
 store_species_group_species <- function(
@@ -23,7 +23,7 @@ store_species_group_species <- function(
   conn,
   clean = TRUE
 ){
-  assert_that(inherits(species_group_species, "data.frame"))
+  species_group_species <- character_df(species_group_species)
 
   assert_that(has_name(species_group_species, "species_group_local_id"))
   assert_that(has_name(species_group_species, "species_local_id"))
@@ -31,7 +31,7 @@ store_species_group_species <- function(
   assert_that(noNA(species_group_species))
 
   dup <- species_group_species %>%
-    select_(~species_local_id, ~species_group_local_id) %>%
+    select(.data$species_local_id, .data$species_group_local_id) %>%
     anyDuplicated()
   if (dup > 0) {
     stop(
@@ -50,8 +50,6 @@ found in species_group_species."
   } else {
     assert_that(is.string(hash))
   }
-
-  species_group_species <- as.character(species_group_species)
 
   if (clean) {
     dbBegin(conn)
@@ -104,9 +102,9 @@ found in species_group_species."
       species,
       by = c("scientific_name", "nbn_key")
     ) %>%
-    select_(
-      species_local_id = ~local_id,
-      species_fingerprint = ~fingerprint
+    select(
+      species_local_id = .data$local_id,
+      species_fingerprint = .data$fingerprint
     ) %>%
     inner_join(
       species_group_species,
@@ -114,13 +112,13 @@ found in species_group_species."
     ) %>%
     inner_join(
       staging.species_group %>%
-        select_(
-          species_group_local_id = ~local_id,
-          species_group_fingerprint = ~fingerprint
+        select(
+          species_group_local_id = .data$local_id,
+          species_group_fingerprint = .data$fingerprint
         ),
       by = c("species_group_local_id")
     ) %>%
-    select_(~species_fingerprint, ~species_group_fingerprint) %>%
+    select(.data$species_fingerprint, .data$species_group_fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

@@ -7,7 +7,8 @@
 #' @inheritParams store_dataset
 #' @export
 #' @importFrom assertthat assert_that has_name
-#' @importFrom dplyr %>% mutate_each_ funs distinct_ arrange_
+#' @importFrom dplyr %>% arrange distinct
+#' @importFrom rlang .data
 #' @importFrom digest sha1
 #' @importFrom DBI dbBegin dbCommit dbRollback dbWriteTable dbGetQuery
 store_analysis_dataset <- function(
@@ -20,11 +21,9 @@ store_analysis_dataset <- function(
   hash,
   conn
 ) {
-  assert_that(inherits(analysis_dataset, "data.frame"))
+  analysis_dataset <- character_df(analysis_dataset)
   assert_that(has_name(analysis_dataset, "analysis"))
   assert_that(has_name(analysis_dataset, "dataset"))
-
-  analysis_dataset <- as.character(analysis_dataset)
 
   if (missing(hash)) {
     hash <- sha1(
@@ -76,8 +75,8 @@ store_analysis_dataset <- function(
   assert_that(all(analysis_dataset$dataset %in% dataset$fingerprint))
 
   analysis_dataset %>%
-    distinct_(~analysis, ~dataset) %>%
-    arrange_(~analysis, ~dataset) %>%
+    distinct(.data$analysis, .data$dataset) %>%
+    arrange(.data$analysis, .data$dataset) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

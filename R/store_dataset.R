@@ -1,15 +1,16 @@
 #' Store a dataset is the database
 #' @param dataset a data.frame with names fingerprint, filename, datasource and import_date
 #' @inheritParams store_datasource_parameter
+#' @importFrom dplyr %>% arrange mutate
+#' @importFrom rlang .data
 #' @export
 store_dataset <- function(dataset, conn, clean = TRUE, hash){
-  assert_that(inherits(dataset, "data.frame"))
+  dataset <- character_df(dataset)
   assert_that(has_name(dataset, "fingerprint"))
   assert_that(has_name(dataset, "filename"))
   assert_that(has_name(dataset, "datasource"))
   assert_that(has_name(dataset, "import_date"))
 
-  dataset <- as.character(dataset)
 
   if (missing(hash)) {
     hash <- sha1(
@@ -29,8 +30,8 @@ store_dataset <- function(dataset, conn, clean = TRUE, hash){
   }
 
   dataset %>%
-    arrange_(~fingerprint) %>%
-    mutate_(import_date = ~as.POSIXct(import_date)) %>%
+    arrange(.data$fingerprint) %>%
+    mutate(import_date = as.POSIXct(.data$import_date)) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

@@ -4,14 +4,14 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA are_equal is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs
+#' @importFrom dplyr %>% transmute select arrange mutate
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
-#' @importFrom tidyr gather_
 store_datafield <- function(datafield, conn, hash, clean = TRUE){
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(datafield, "data.frame"))
+  datafield <- character_df(datafield)
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(datafield, "local_id"))
@@ -29,8 +29,6 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   } else {
     assert_that(is.string(hash))
   }
-
-  datafield <- as.character(datafield)
 
   if (clean) {
     dbBegin(conn)
@@ -52,29 +50,29 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   )
 
   df <- datafield %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~local_id,
-      ~datasource,
-      ~table_name,
-      ~primary_key,
-      dft = ~datafield_type
+      .data$local_id,
+      .data$datasource,
+      .data$table_name,
+      .data$primary_key,
+      dft = .data$datafield_type
     ) %>%
     inner_join(
       datafield_type %>%
-        select_(dft = ~description, datafield_type = ~fingerprint),
+        select(dft = .data$description, datafield_type = .data$fingerprint),
       by = "dft"
     ) %>%
-    select_(~-dft) %>%
+    select(-.data$dft) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(
-      datasource = datasource,
-      table_name = table_name,
-      primary_key = primary_key,
-      datafield_type = datafield_type
+    mutate(fingerprint = sha1(c(
+      datasource = .data$datasource,
+      table_name = .data$table_name,
+      primary_key = .data$primary_key,
+      datafield_type = .data$datafield_type
     )))
   df %>%
-    arrange_(~fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -143,7 +141,7 @@ store_datafield <- function(datafield, conn, hash, clean = TRUE){
   }
 
   df <- df %>%
-    select_(~-id)
+    select(-.data$id)
   attr(df, "hash") <- hash
   return(df)
 }

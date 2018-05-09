@@ -7,7 +7,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>% rowwise select_ mutate_
+#' @importFrom dplyr data_frame %>% rowwise select mutate
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_datasource_parameter <- function(
   datasource_parameter,
@@ -34,7 +34,7 @@ store_datasource_parameter <- function(
     id = NA_integer_
   ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description)))
+    mutate(fingerprint = sha1(c(description = .data$description)))
   dsp %>%
     as.data.frame() %>%
     dbWriteTable(
@@ -84,7 +84,7 @@ store_datasource_parameter <- function(
   }
 
   dsp <- dsp %>%
-    select_(~-id)
+    select(-.data$id)
   attr(dsp, "sql") <- datasource_parameter
   return(dsp)
 }

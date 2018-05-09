@@ -3,30 +3,31 @@
 digest::sha1
 
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_
+#' @importFrom dplyr %>% arrange
 #' @export
 #' @method sha1 n2kAnalysisVersion
-sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L) {
+sha1.n2kAnalysisVersion <- function(x, digits = 14L, zapsmall = 7L, ...) {
   av <- x@AnalysisVersion
   rp <- x@RPackage
   avrp <- x@AnalysisVersionRPackage
 
-  av <- as.character(av)
-  rp <- as.character(rp)
-  avrp <- as.character(avrp)
+  av <- character_df(av)
+  rp <- character_df(rp)
+  avrp <- character_df(avrp)
 
   z <- list(
     analysis_version = av %>%
-      arrange_(~Fingerprint),
+      arrange(.data$Fingerprint),
     r_package = rp %>%
-      arrange_(~Fingerprint),
+      arrange(.data$Fingerprint),
     analysis_version_r_package = avrp %>%
-      arrange_(~AnalysisVersion, ~RPackage)
+      arrange(.data$AnalysisVersion, .data$RPackage)
   )
   attr(z, "digest::sha1") <- list(
     class = class(x),
     digits = as.integer(digits),
-    zapsmall = as.integer(zapsmall)
+    zapsmall = as.integer(zapsmall),
+    ...
   )
-  sha1(z, digits = digits, zapsmall = zapsmall)
+  sha1(z, digits = digits, zapsmall = zapsmall, ...)
 }

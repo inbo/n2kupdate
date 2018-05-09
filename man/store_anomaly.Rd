@@ -4,15 +4,12 @@
 \alias{store_anomaly}
 \title{Store anomaly}
 \usage{
-store_anomaly(anomaly, anomaly_type, datafield, parameter, hash, conn,
-  clean = TRUE)
+store_anomaly(anomaly, anomaly_type, parameter, hash, conn, clean = TRUE)
 }
 \arguments{
 \item{anomaly}{a data.frame with variables "anomaly_type_local_id", "datafield", "analyis" and "parameter_local_id".}
 
 \item{anomaly_type}{a data.frame with variables "local_id", "description" and "long_description". "long_description" is optional}
-
-\item{datafield}{a data.frame with datafield metadata. Must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.}
 
 \item{parameter}{a data.frame with parameters. Must contains the variables "description", "local_id", and "parent_parameter_local_id". Other variables are ignored.}
 

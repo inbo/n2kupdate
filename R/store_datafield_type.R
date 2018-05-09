@@ -5,7 +5,7 @@
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom methods is
 #' @importFrom digest sha1
-#' @importFrom dplyr data_frame %>% rowwise mutate_ select_
+#' @importFrom dplyr data_frame %>% rowwise mutate select
 #' @importFrom digest sha1
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbBegin dbCommit
 store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
@@ -28,7 +28,7 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
     id = NA_integer_
   ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description)))
+    mutate(fingerprint = sha1(c(description = .data$description)))
   dft %>%
     as.data.frame() %>%
     dbWriteTable(
@@ -78,7 +78,7 @@ store_datafield_type <- function(datafield_type, hash, conn, clean = TRUE){
   }
 
   dft <- dft %>%
-    select_(~-id)
+    select(-.data$id)
   attr(dft, "SQL") <- datafield_type
   return(dft)
 }

@@ -4,10 +4,11 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_ arrange_ inner_join mutate_each_ funs
+#' @importFrom dplyr %>% rowwise mutate select inner_join mutate_at funs
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_model_set <- function(model_set, hash, clean = TRUE, conn){
-  assert_that(inherits(model_set, "data.frame"))
+  model_set <- character_df(model_set)
   assert_that(has_name(model_set, "local_id"))
   assert_that(has_name(model_set, "description"))
   assert_that(has_name(model_set, "first_year"))
@@ -31,14 +32,19 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
   }
   assert_that(noNA(
     model_set %>%
-      select_(~local_id, ~description, ~first_year, ~last_year, ~duration)
+      select(
+        .data$local_id,
+        .data$description,
+        .data$first_year,
+        .data$last_year,
+        .data$duration
+      )
   ))
 
-  model_set <- as.character(model_set)
   numbers <- sapply(model_set, is.numeric)
   if (any(numbers)) {
     model_set <- model_set %>%
-      mutate_each_(funs(as.integer), vars = names(numbers)[numbers])
+      mutate_at(.vars = names(numbers)[numbers], .funs = funs(as.integer))
   }
   if (clean) {
     dbBegin(conn)
@@ -48,7 +54,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
     model_type <- tryCatch(
       store_model_type(
         model_set %>%
-          select_(~description, ~long_description),
+          select(.data$description, .data$long_description),
         hash = hash,
         clean = FALSE,
         conn = conn
@@ -64,7 +70,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
     model_type <- tryCatch(
       store_model_type(
         model_set %>%
-          select_(~description),
+          select(.data$description),
         hash = hash,
         clean = FALSE,
         conn = conn
@@ -79,23 +85,29 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
   }
 
   staging <- model_type %>%
-    select_(~description, model_type = ~fingerprint) %>%
+    select(.data$description, model_type = .data$fingerprint) %>%
     inner_join(
       model_set,
       by = "description"
     ) %>%
-    select_(~local_id, ~model_type, ~first_year, ~last_year, ~duration) %>%
-    mutate_(id = ~NA_integer_) %>%
+    select(
+      .data$local_id,
+      .data$model_type,
+      .data$first_year,
+      .data$last_year,
+      .data$duration
+    ) %>%
+    mutate(id = NA_integer_) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(
-      model_type = model_type,
-      first_year = first_year,
-      last_year = last_year,
-      duration = duration
+    mutate(fingerprint = sha1(c(
+      model_type = .data$model_type,
+      first_year = .data$first_year,
+      last_year = .data$last_year,
+      duration = .data$duration
     ))) %>%
-    arrange_(~model_type, ~first_year, ~last_year)
+    arrange(.data$model_type, .data$first_year, .data$last_year)
   staging %>%
-    select_(~-local_id) %>%
+    select(-.data$local_id) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -165,7 +177,7 @@ store_model_set <- function(model_set, hash, clean = TRUE, conn){
   }
 
   staging <- staging %>%
-    select_(~-id)
+    select(-.data$id)
   attr(staging, "SQL") <- sql.model_type
   attr(staging, "hash") <- hash
   return(staging)

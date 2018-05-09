@@ -1,5 +1,5 @@
 context("store_location")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.datafield <- data.frame(
   local_id = ut,
@@ -28,43 +28,43 @@ ut.location2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("input is suitable", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     store_location(location = "junk", datafield = ut.datafield, conn = conn),
     "location does not inherit from class data\\.frame"
   )
   expect_error(
     ut.location %>%
-      select_(~-local_id) %>%
+      select(-local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name local_id"
   )
   expect_error(
     ut.location %>%
-      select_(~-description) %>%
+      select(-description) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name description"
   )
   expect_error(
     ut.location %>%
-      select_(~-parent_local_id) %>%
+      select(-parent_local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name parent_local_id"
   )
   expect_error(
     ut.location %>%
-      select_(~-datafield_local_id) %>%
+      select(-datafield_local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name datafield_local_id"
   )
   expect_error(
     ut.location %>%
-      select_(~-external_code) %>%
+      select(-external_code) %>%
       store_location(datafield = ut.datafield, conn = conn),
     "location does not have name external_code"
   )
   ut.duplicate <- rbind(ut.location, ut.location) %>%
-    mutate_(local_id = ~letters[seq_along(local_id)])
+    mutate(local_id = letters[seq_along(local_id)])
   expect_error(
     store_location(
       location = ut.duplicate,
@@ -78,7 +78,7 @@ parent_local_id are found in location."
 })
 
 test_that("it stores new data correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored.location <- store_location(
@@ -143,7 +143,7 @@ test_that("it stores new data correctly", {
   test <- stored %>%
     left_join(
       stored %>%
-        select_(test = ~id, parent_local_id = ~local_id),
+        select(test = id, parent_local_id = local_id),
       by = "parent_local_id"
     )
   expect_identical(test$parent_location, test$test)
@@ -152,7 +152,7 @@ test_that("it stores new data correctly", {
 })
 
 test_that("it updates the description of existing locations", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     stored.location <- store_location(
@@ -216,7 +216,7 @@ test_that("it updates the description of existing locations", {
   ") %>%
     dplyr::full_join(
       ut.location2 %>%
-        mutate_(description = ~as.character(description)) %>%
+        mutate(description = as.character(description)) %>%
         inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
       by = c(
         "description", "external_code", "datasource", "table_name",
@@ -230,7 +230,7 @@ test_that("it updates the description of existing locations", {
   test <- stored %>%
     left_join(
       stored %>%
-        select_(test = ~id, parent_local_id = ~local_id),
+        select(test = id, parent_local_id = local_id),
       by = "parent_local_id"
     )
   expect_identical(test$parent_location, test$test)
@@ -238,7 +238,7 @@ test_that("it updates the description of existing locations", {
   DBI::dbDisconnect(conn)
 })
 
-conn <- connect_db()
+conn <- connect_ut_db()
 c("staging", "datafield_junk") %>%
   DBI::dbExistsTable(conn = conn) %>%
   expect_false()

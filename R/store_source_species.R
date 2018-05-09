@@ -4,7 +4,8 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
+#' @importFrom dplyr %>% select rowwise inner_join left_join transmute arrange mutate
+#' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
 store_source_species <- function(
@@ -17,19 +18,19 @@ store_source_species <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(source_species, "data.frame"))
+  source_species <- character_df(source_species)
 
   assert_that(has_name(source_species, "local_id"))
   assert_that(has_name(source_species, "description"))
   assert_that(has_name(source_species, "datafield_local_id"))
   assert_that(has_name(source_species, "external_code"))
 
-  assert_that(noNA(select_(source_species)))
+  assert_that(noNA(source_species))
 
   assert_that(are_equal(anyDuplicated(source_species$local_id), 0L))
 
   dup <- source_species %>%
-    select_(~datafield_local_id, ~external_code) %>%
+    select(.data$datafield_local_id, .data$external_code) %>%
     anyDuplicated()
   if (dup > 0) {
     stop(
@@ -37,8 +38,6 @@ store_source_species <- function(
 source_species."
     )
   }
-
-  source_species <- as.character(source_species)
 
   if (missing(hash)) {
     hash <- sha1(list(source_species, datafield, as.POSIXct(Sys.time())))
@@ -87,21 +86,21 @@ source_species."
     dbGetQuery(conn = conn) %>%
     inner_join(source_species, by = "datafield_local_id") %>%
     rowwise() %>%
-    mutate_(
-      fingerprint = ~sha1(c(
-        datafield = datafield,
-        external_code = external_code
+    mutate(
+      fingerprint = sha1(c(
+        datafield = .data$datafield,
+        external_code = .data$external_code
       ))
     )
   source_species %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~fingerprint,
-      ~description,
-      ~datafield_local_id,
-      ~external_code
+      .data$fingerprint,
+      .data$description,
+      .data$datafield_local_id,
+      .data$external_code
     ) %>%
-    arrange_(~fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

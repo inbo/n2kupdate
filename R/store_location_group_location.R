@@ -5,7 +5,8 @@
 #' @inheritParams store_location_group
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
+#' @importFrom dplyr %>% select rowwise inner_join left_join transmute arrange
+#' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
 #' @details
@@ -33,8 +34,7 @@ store_location_group_location <- function(
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(location_group_location, "data.frame"))
-  assert_that(inherits(location_group, "data.frame"))
+  location_group_location <- character_df(location_group_location)
 
   assert_that(has_name(location_group_location, "location_local_id"))
   assert_that(has_name(location_group_location, "location_group_local_id"))
@@ -42,8 +42,6 @@ store_location_group_location <- function(
   assert_that(noNA(location_group_location))
 
   assert_that(are_equal(anyDuplicated(location_group_location), 0L))
-
-  location_group_location <- as.character(location_group_location)
 
   if (missing(hash)) {
     hash <- sha1(list(
@@ -96,15 +94,15 @@ store_location_group_location <- function(
 
   # write to staging table
   location %>%
-    select_(location_local_id = ~local_id, ~fingerprint) %>%
+    select(location_local_id = .data$local_id, .data$fingerprint) %>%
     inner_join(location_group_location, by = "location_local_id") %>%
-    transmute_(
+    transmute(
       location = NA_integer_,
       location_group = NA_integer_,
-      location_fingerprint = ~fingerprint,
-      ~location_group_local_id
+      location_fingerprint = .data$fingerprint,
+      .data$location_group_local_id
     ) %>%
-    arrange_(~location_group_local_id, ~location_fingerprint) %>%
+    arrange(.data$location_group_local_id, .data$location_fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

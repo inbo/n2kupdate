@@ -4,10 +4,10 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.string is.flag
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% mutate_each_ funs rowwise mutate_
+#' @importFrom dplyr %>% rowwise mutate transmute
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery
 store_species_group <- function(species_group, hash, conn, clean = TRUE){
-  assert_that(inherits(species_group, "data.frame"))
+  species_group <- character_df(species_group)
   assert_that(noNA(species_group))
   assert_that(has_name(species_group, "local_id"))
   assert_that(has_name(species_group, "description"))
@@ -23,21 +23,20 @@ store_species_group <- function(species_group, hash, conn, clean = TRUE){
 
   assert_that(are_equal(anyDuplicated(species_group$local_id), 0L))
 
-  species_group <- as.character(species_group)
 
   if (clean) {
     dbBegin(conn)
   }
 
   staging.species_group <- species_group %>%
-    transmute_(
-      id = ~NA_integer_,
-      ~local_id,
-      ~description,
-      ~scheme
+    transmute(
+      id = NA_integer_,
+      .data$local_id,
+      .data$description,
+      .data$scheme
     ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description)))
+    mutate(fingerprint = sha1(c(description = .data$description)))
   staging.species_group %>%
     as.data.frame() %>%
     dbWriteTable(

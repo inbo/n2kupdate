@@ -4,7 +4,8 @@
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select_ mutate_ rowwise mutate_each_ funs inner_join left_join transmute_ filter_
+#' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute arrange filter
+#' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
 #' @export
 #' @details
@@ -20,7 +21,7 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
 
-  assert_that(inherits(location, "data.frame"))
+  location <- character_df(location)
 
   assert_that(has_name(location, "local_id"))
   assert_that(has_name(location, "description"))
@@ -28,12 +29,16 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
   assert_that(has_name(location, "datafield_local_id"))
   assert_that(has_name(location, "external_code"))
 
-  assert_that(noNA(select_(location, ~-parent_local_id)))
+  assert_that(noNA(select(location, -.data$parent_local_id)))
 
   assert_that(are_equal(anyDuplicated(location$local_id), 0L))
 
   dup <- location %>%
-    select_(~datafield_local_id, ~external_code, ~parent_local_id) %>%
+    select(
+      .data$datafield_local_id,
+      .data$external_code,
+      .data$parent_local_id
+    ) %>%
     anyDuplicated()
   if (dup > 0) {
     stop(
@@ -41,8 +46,6 @@ store_location <- function(location, datafield, conn, hash, clean = TRUE) {
 parent_local_id are found in location."
     )
   }
-
-  location <- as.character(location)
 
   assert_that(all(location$datafield_local_id %in% datafield$local_id))
 
@@ -64,10 +67,10 @@ parent_local_id are found in location."
   }
   tryCatch(
     store_datafield(
-    datafield = datafield,
-    conn = conn,
-    hash = hash,
-    clean = FALSE
+      datafield = datafield,
+      conn = conn,
+      hash = hash,
+      clean = FALSE
     ),
     error = function(e){
       if (clean) {
@@ -100,12 +103,12 @@ parent_local_id are found in location."
     dbGetQuery(conn = conn) %>%
     inner_join(location, by = "datafield_local_id") %>%
     rowwise() %>%
-    mutate_(
-      fingerprint = ~ifelse(
-        is.na(parent_local_id),
+    mutate(
+      fingerprint = ifelse(
+        is.na(.data$parent_local_id),
         sha1(c(
-          datafield = datafield,
-          external_code = external_code
+          datafield = .data$datafield,
+          external_code = .data$external_code
         )),
         NA
       )
@@ -114,25 +117,25 @@ parent_local_id are found in location."
     location <- location %>%
       left_join(
         location %>%
-          filter_(~!is.na(fingerprint)) %>%
-          select_(
-            parent_local_id = ~local_id,
-            parent_fingerprint = ~fingerprint
+          filter(!is.na(.data$fingerprint)) %>%
+          select(
+            parent_local_id = .data$local_id,
+            parent_fingerprint = .data$fingerprint
           ),
         by = "parent_local_id"
       ) %>%
-      mutate_(
-        fingerprint = ~ifelse(
-          is.na(fingerprint),
+      mutate(
+        fingerprint = ifelse(
+          is.na(.data$fingerprint),
           ifelse(
-            !is.na(parent_fingerprint),
+            !is.na(.data$parent_fingerprint),
             sha1(c(
-              datafield = datafield,
-              external_code = external_code
+              datafield = .data$datafield,
+              external_code = .data$external_code
             )),
             NA
           ),
-          fingerprint
+          .data$fingerprint
         )
       )
     if (all.equal(
@@ -143,16 +146,16 @@ parent_local_id are found in location."
     }
   }
   location %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~fingerprint,
-      ~description,
+      .data$fingerprint,
+      .data$description,
       parent_location = NA_integer_,
-      ~parent_fingerprint,
-      ~datafield_local_id,
-      ~external_code
+      .data$parent_fingerprint,
+      .data$datafield_local_id,
+      .data$external_code
     ) %>%
-    arrange_(~fingerprint) %>%
+    arrange(.data$fingerprint) %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,

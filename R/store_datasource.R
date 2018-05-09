@@ -4,12 +4,13 @@
 #' @export
 #' @importFrom assertthat assert_that has_name
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% transmute_ distinct_ select_ arrange_  mutate_each_ funs rename_
+#' @importFrom dplyr %>% transmute select arrange rename mutate
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbRemoveTable
-#' @importFrom tidyr gather_
+#' @importFrom tidyr gather
 #' @details datasource must contain at least the variables description, datasource_type and connect_method.
 store_datasource <- function(datasource, conn, clean = TRUE, hash){
-  assert_that(inherits(datasource, "data.frame"))
+  datasource <- character_df(datasource)
   assert_that(inherits(conn, "DBIConnection"))
 
   assert_that(has_name(datasource, "description"))
@@ -18,8 +19,6 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
 
   assert_that(is.flag(clean))
   assert_that(noNA(clean))
-
-  datasource <- as.character(datasource)
 
   if (missing(hash)) {
     hash <- sha1(list(datasource, as.POSIXct(Sys.time())))
@@ -45,7 +44,7 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     }
   )
   datasource_parameters <- datasource %>%
-    select_(~-description, ~-datasource_type) %>%
+    select(-.data$description, -.data$datasource_type) %>%
     colnames()
   datasource_parameter <- store_datasource_parameter(
     datasource_parameter = datasource_parameters,
@@ -55,23 +54,23 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
   )
 
   ds <- datasource %>%
-    transmute_(
+    transmute(
       id = NA_integer_,
-      ~description,
-      dst = ~datasource_type
+      .data$description,
+      dst = .data$datasource_type
     ) %>%
     inner_join(
       datasource_type %>%
-        rename_(datasource_type = ~fingerprint),
+        rename(datasource_type = .data$fingerprint),
       by = c("dst" = "description")
     ) %>%
-    select_(~-dst) %>%
+    select(-.data$dst) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(
-      description = description,
-      datasource_type = datasource_type
+    mutate(fingerprint = sha1(c(
+      description = .data$description,
+      datasource_type = .data$datasource_type
     ))) %>%
-    arrange_(~datasource_type, ~description)
+    arrange(.data$datasource_type, .data$description)
   ds %>%
     as.data.frame() %>%
     dbWriteTable(
@@ -127,25 +126,25 @@ store_datasource <- function(datasource, conn, clean = TRUE, hash){
     dbGetQuery(conn = conn)
 
   datasource %>%
-    rename_(dst = ~datasource_type) %>%
+    rename(dst = .data$datasource_type) %>%
     inner_join(
       datasource_type %>%
-        rename_(datasource_type = ~fingerprint),
+        rename(datasource_type = .data$fingerprint),
       by = c("dst" = "description")
     ) %>%
-    select_(~-dst) %>%
-    gather_(
-      key_col = "dpd",
-      value_col = "value",
-      gather_cols = datasource_parameters,
+    select(-.data$dst) %>%
+    gather(
+      key = "dpd",
+      value = "value",
+      datasource_parameters,
       na.rm = TRUE
     ) %>%
     inner_join(
       datasource_parameter %>%
-        rename_(dpd = ~description, parameter = ~fingerprint),
+        rename(dpd = .data$description, parameter = .data$fingerprint),
       by = "dpd"
     ) %>%
-    select_(~-dpd) %>%
+    select(-.data$dpd) %>%
     dbWriteTable(
       conn = conn,
       name = c("staging", paste0("datasource_value_", hash)),

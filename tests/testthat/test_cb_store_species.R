@@ -1,5 +1,5 @@
 context("store_species")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.species_group <- data.frame(
   local_id = ut,
@@ -106,7 +106,7 @@ ut.species_group_species2 <- data.frame(
 DBI::dbDisconnect(conn)
 
 test_that("store_species_group works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     sg <- store_species_group(
@@ -123,8 +123,8 @@ test_that("store_species_group works correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.species_group %>%
-    select_(~description, ~scheme) %>%
-    arrange_(~scheme, ~description) %>%
+    select(description, scheme) %>%
+    arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -166,9 +166,9 @@ test_that("store_species_group works correctly", {
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   ut.species_group2 %>%
-    select_(~description, ~scheme) %>%
-    as.character() %>%
-    arrange_(~scheme, ~description) %>%
+    select(description, scheme) %>%
+    character_df() %>%
+    arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -190,7 +190,7 @@ test_that("store_species_group works correctly", {
 })
 
 test_that("store_source_species works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_source_species(
@@ -284,7 +284,7 @@ source_species."
   ") %>%
     dplyr::full_join(
       ut.source_species %>%
-        mutate_(description = ~as.character(description)) %>%
+        mutate(description = as.character(description)) %>%
         inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
       by = c(
         "description", "external_code", "datasource", "table_name",
@@ -356,7 +356,7 @@ source_species."
   ") %>%
     dplyr::full_join(
       ut.source_species2 %>%
-        as.character() %>%
+        character_df() %>%
         inner_join(ut.datafield, by = c("datafield_local_id" = "local_id")),
       by = c(
         "description", "external_code", "datasource", "table_name",
@@ -371,7 +371,7 @@ source_species."
 })
 
 test_that("store_language() works fine", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     lang <- store_language(
@@ -387,8 +387,8 @@ test_that("store_language() works fine", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.language %>%
-    select_(~code, ~description) %>%
-    arrange_(~code, ~description) %>%
+    select(code, description) %>%
+    arrange(code, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -418,9 +418,9 @@ test_that("store_language() works fine", {
     DBI::dbRemoveTable(conn = conn) %>%
     expect_true()
   ut.language2 %>%
-    select_(~code, ~description) %>%
-    as.character() %>%
-    arrange_(~code, ~description) %>%
+    select(code, description) %>%
+    character_df() %>%
+    arrange(code, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
@@ -438,7 +438,7 @@ test_that("store_language() works fine", {
 })
 
 test_that("store_species() works fine", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     spec <- store_species(
@@ -571,7 +571,7 @@ test_that("store_species() works fine", {
     tidyr::spread_(key_col = "language", value_col = "common") %>%
     dplyr::full_join(
       ut.species2 %>%
-        as.character(),
+        character_df(),
       by = c("nbn_key", "scientific_name", "nl", "en")
     )
   expect_false(any(is.na(stored$local_id)))
@@ -602,7 +602,7 @@ test_that("store_species() works fine", {
 })
 
 test_that("store_source_species_species() works fine", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_source_species_species(
@@ -736,14 +736,14 @@ found in source_species_species."
   ") %>%
     dplyr::full_join(
       ut.species %>%
-        select_(species_local_id = ~local_id, ~nbn_key) %>%
+        select(species_local_id = local_id, nbn_key) %>%
         inner_join(
           ut.source_species_species,
           by = "species_local_id"
         ) %>%
         inner_join(
           ut.source_species %>%
-            select_(source_species_local_id = ~local_id, ~external_code),
+            select(source_species_local_id = local_id, external_code),
           by = "source_species_local_id"
         ),
       by = c("nbn_key", "external_code")
@@ -841,15 +841,15 @@ found in source_species_species."
   ") %>%
     dplyr::full_join(
       ut.species %>%
-        select_(species_local_id = ~local_id, ~nbn_key) %>%
+        select(species_local_id = local_id, nbn_key) %>%
         inner_join(
           ut.source_species_species2 %>%
-            as.character(),
+            character_df(),
           by = "species_local_id"
         ) %>%
         inner_join(
           ut.source_species %>%
-            select_(source_species_local_id = ~local_id, ~external_code),
+            select(source_species_local_id = local_id, external_code),
           by = "source_species_local_id"
         ),
       by = c("nbn_key", "external_code")
@@ -864,7 +864,7 @@ found in source_species_species."
 })
 
 test_that("store_species_group_species() works as expected", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_error(
     store_species_group_species(
@@ -1071,14 +1071,14 @@ found in species_group_species."
   ") %>%
     dplyr::full_join(
       ut.species %>%
-        select_(species_local_id = ~local_id, ~nbn_key) %>%
+        select(species_local_id = local_id, nbn_key) %>%
         inner_join(
           ut.species_group_species,
           by = "species_local_id"
         ) %>%
         inner_join(
           ut.species_group %>%
-            select_(species_group_local_id = ~local_id, ~description, ~scheme),
+            select(species_group_local_id = local_id, description, scheme),
           by = "species_group_local_id"
         ),
       by = c("nbn_key", "description", "scheme")
@@ -1166,15 +1166,15 @@ found in species_group_species."
   ") %>%
     dplyr::full_join(
       ut.species %>%
-        select_(species_local_id = ~local_id, ~nbn_key) %>%
+        select(species_local_id = local_id, nbn_key) %>%
         inner_join(
           ut.species_group_species2 %>%
-            as.character(),
+            character_df(),
           by = "species_local_id"
         ) %>%
         inner_join(
           ut.species_group %>%
-            select_(species_group_local_id = ~local_id, ~description, ~scheme),
+            select(species_group_local_id = local_id, description, scheme),
           by = "species_group_local_id"
         ),
       by = c("nbn_key", "description", "scheme")

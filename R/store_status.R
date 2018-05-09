@@ -4,7 +4,8 @@
 #' @export
 #' @importFrom assertthat assert_that noNA is.flag is.string
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% rowwise mutate_ select_
+#' @importFrom dplyr %>% rowwise mutate select arrange
+#' @importFrom rlang .data
 #' @importFrom DBI dbWriteTable dbQuoteIdentifier dbGetQuery dbRemoveTable
 store_status <- function(status, hash, clean = TRUE, conn){
   if (is.factor(status)) {
@@ -34,8 +35,8 @@ store_status <- function(status, hash, clean = TRUE, conn){
     stringsAsFactors = FALSE
   ) %>%
     rowwise() %>%
-    mutate_(fingerprint = ~sha1(c(description = description))) %>%
-    arrange_(~description)
+    mutate(fingerprint = sha1(c(description = .data$description))) %>%
+    arrange(.data$description)
   staging %>%
     as.data.frame() %>%
     dbWriteTable(
@@ -85,7 +86,7 @@ store_status <- function(status, hash, clean = TRUE, conn){
   }
 
   staging <- staging %>%
-    select_(~-id)
+    select(-.data$id)
   attr(staging, "SQL") <- sql.status
   attr(staging, "hash") <- hash
   return(staging)

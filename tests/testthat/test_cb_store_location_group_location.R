@@ -1,5 +1,5 @@
 context("store_location_group_location")
-conn <- connect_db()
+conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
 ut.location_group <- data.frame(
   local_id = ut,
@@ -31,7 +31,7 @@ ut.location_group_location <- expand.grid(
 DBI::dbDisconnect(conn)
 
 test_that("it checks the arguments", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
   expect_error(
     store_location_group_location(
       location_group_location = "junk",
@@ -56,7 +56,7 @@ test_that("it checks the arguments", {
 })
 
 test_that("it stores the correct information", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   expect_is(
     staging.location_group <- store_location_group_location(
@@ -88,10 +88,10 @@ test_that("it stores the correct information", {
   to.store <- ut.location_group_location %>%
     inner_join(
       ut.location_group %>%
-        rename_(location_group = ~description),
+        rename(location_group = description),
       by = c("location_group_local_id" = "local_id")
     ) %>%
-    select_(~-location_group_local_id) %>%
+    select(-location_group_local_id) %>%
     inner_join(
       ut.location,
       by = c("location_local_id" = "local_id")
@@ -100,7 +100,7 @@ test_that("it stores the correct information", {
       ut.datafield,
       by = c("datafield_local_id" = "local_id")
     ) %>%
-    select_(~-datafield_local_id)
+    select(-datafield_local_id)
   stored <- dbGetQuery(conn, "
     SELECT
       s.fingerprint AS scheme,
@@ -152,7 +152,7 @@ test_that("it stores the correct information", {
   result <- to.store %>%
     dplyr::full_join(
       stored %>%
-        mutate_(junk = 1),
+        mutate(junk = 1),
       by = colnames(stored)
     )
   expect_false(any(is.na(result$location_local_id)))
@@ -222,10 +222,10 @@ test_that("it stores the correct information", {
   to.store <- ut.location_group_location %>%
     inner_join(
       ut.location_group %>%
-        rename_(location_group = ~description),
+        rename(location_group = description),
       by = c("location_group_local_id" = "local_id")
     ) %>%
-    select_(~-location_group_local_id) %>%
+    select(-location_group_local_id) %>%
     inner_join(
       ut.location,
       by = c("location_local_id" = "local_id")
@@ -234,7 +234,7 @@ test_that("it stores the correct information", {
       ut.datafield,
       by = c("datafield_local_id" = "local_id")
     ) %>%
-    select_(~-datafield_local_id)
+    select(-datafield_local_id)
   stored <- dbGetQuery(conn, "
     SELECT
       s.fingerprint AS scheme,
@@ -286,7 +286,7 @@ test_that("it stores the correct information", {
   result <- to.store %>%
     dplyr::full_join(
       stored %>%
-        mutate_(junk = 1),
+        mutate(junk = 1),
       by = colnames(stored)
     )
   expect_false(any(is.na(result$location_local_id)))
@@ -298,24 +298,24 @@ test_that("it stores the correct information", {
 })
 
 test_that("subfunction works correctly", {
-  conn <- connect_db()
+  conn <- connect_ut_db()
 
   # location_group
   expect_error(
     ut.location_group %>%
-      select_(~-local_id) %>%
+      select(-local_id) %>%
       store_location_group(conn = conn),
     "location_group does not have name local_id"
   )
   expect_error(
     ut.location_group %>%
-      select_(~-description) %>%
+      select(-description) %>%
       store_location_group(conn = conn),
     "location_group does not have name description"
   )
   expect_error(
     ut.location_group %>%
-      select_(~-scheme) %>%
+      select(-scheme) %>%
       store_location_group(conn = conn),
     "location_group does not have name scheme"
   )
@@ -341,8 +341,8 @@ test_that("subfunction works correctly", {
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
   ut.location_group %>%
-    select_(~description, ~scheme) %>%
-    arrange_(~scheme, ~description) %>%
+    select(description, scheme) %>%
+    arrange(scheme, description) %>%
     expect_identical(
       dbGetQuery(
         conn,
