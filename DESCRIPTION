@@ -1,0 +1,67 @@
+Package: n2kupdate
+Title: Auxiliary Functions to Update the n2kresult Database
+Version: 0.1
+Date: 2018-05-09
+Authors@R: c(
+  person("Thierry", "Onkelinx", email = "thierry.onkelinx@inbo.be", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-8804-4216")),
+  person(family = "Instituut voor Natuur en Bosonderzoek (INBO)", email = "inbo@inbo.be", role = "cph"))
+Description: The functions are useful to store the results from https://
+    github.com/inbo/n2kanalysis into a PostgreSQL database created with https://
+    github.com/inbo/n2kresult.
+Depends:
+    R (>= 3.2.0)
+Imports:
+    assertthat,
+    DBI,
+    digest,
+    dplyr,
+    methods,
+    purrr,
+    rlang,
+    RPostgreSQL,
+    tibble,
+    tidyr
+Suggests:
+    n2kanalysis,
+    optimx,
+    testthat
+Remotes:
+    inbo/n2kanalysis
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Collate: 
+    'character_df.R'
+    'class_n2kAnalysisVersion.R'
+    'connect_ut_db.R'
+    'import_S3_classes.R'
+    'sha1.R'
+    'store_analysis.R'
+    'store_analysis_dataset.R'
+    'store_analysis_version.R'
+    'store_anomaly.R'
+    'store_anomaly_type.R'
+    'store_datafield.R'
+    'store_datafield_type.R'
+    'store_dataset.R'
+    'store_datasource.R'
+    'store_datasource_parameter.R'
+    'store_datasource_type.R'
+    'store_language.R'
+    'store_location.R'
+    'store_location_group.R'
+    'store_location_group_location.R'
+    'store_model_set.R'
+    'store_model_type.R'
+    'store_n2kResult.R'
+    'store_observation.R'
+    'store_parameter.R'
+    'store_scheme.R'
+    'store_source_species.R'
+    'store_source_species_species.R'
+    'store_species.R'
+    'store_species_group.R'
+    'store_species_group_species.R'
+    'store_status.R'
+    'truncate_public.R'
