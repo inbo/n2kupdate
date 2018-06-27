@@ -138,10 +138,10 @@ parent_local_id are found in location."
           .data$fingerprint
         )
       )
-    if (all.equal(
+    if (isTRUE(all.equal(
       is.na(location$parent_local_id),
       is.na(location$parent_fingerprint)
-    )) {
+    ))) {
       break
     }
   }
