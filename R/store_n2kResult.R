@@ -1,6 +1,7 @@
 #' store an n2kResult object into the database
 #' @inheritParams store_datasource_parameter
 #' @param object a \code{\link[n2kanalysis]{n2kResult-class}} object
+#' @export
 #' @importFrom methods validObject
 #' @importFrom digest sha1
 #' @importFrom assertthat assert_that is.string is.flag noNA
