@@ -8,7 +8,7 @@ store_location_group_location(location_group_location, location_group, location,
   datafield, conn, hash, clean = TRUE)
 }
 \arguments{
-\item{location_group_location}{a data.frame with the locations per location group}
+\item{location_group_location}{a data.frame with the locations per location group. Must contain location_group_local_id and location_local_id. Other columns are ignored.}
 
 \item{location_group}{the data.frame with location groups. Must contains local_id, description and scheme. Other variables are ignored. local_id must have unique values.}
 

@@ -1,5 +1,5 @@
 #' store the link between locations and location groups in the database
-#' @param location_group_location a data.frame with the locations per location group
+#' @param location_group_location a data.frame with the locations per location group. Must contain location_group_local_id and location_local_id. Other columns are ignored.
 #' @inheritParams store_datasource_parameter
 #' @inheritParams store_location
 #' @inheritParams store_location_group
