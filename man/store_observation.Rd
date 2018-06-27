@@ -12,7 +12,7 @@ store_observation(datafield, observation, location, parameter, conn, hash,
 
 \item{observation}{a data.frame with observation metadata. Must contain the variables local_id, datafield_local_id, external_code, location_local_id, year and parameter_local_id. Other variables are ignored. datafield_local_id, external_code and parameter_local_id can be missing.}
 
-\item{location}{a data.frame with location metadata}
+\item{location}{a data.frame with location metadata. Must contain the following columns: local_id, description, parent_local_id, datafield_local_id and external_code. Other columns are ignored.}
 
 \item{parameter}{a data.frame with parameters. Must contains the variables "description", "local_id", and "parent_parameter_local_id". Other variables are ignored.}
 

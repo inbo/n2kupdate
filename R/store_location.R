@@ -1,6 +1,6 @@
 #' store locations in the database
-#' @param location a data.frame with location metadata
-#' @param datafield a data.frame with datafield metadata
+#' @param location a data.frame with location metadata. Must contain the following columns: local_id, description, parent_local_id, datafield_local_id and external_code. Other columns are ignored.
+#' @inheritParams store_datafield
 #' @inheritParams store_datasource_parameter
 #' @importFrom assertthat assert_that is.string is.flag noNA has_name
 #' @importFrom digest sha1

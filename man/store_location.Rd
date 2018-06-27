@@ -7,9 +7,9 @@
 store_location(location, datafield, conn, hash, clean = TRUE)
 }
 \arguments{
-\item{location}{a data.frame with location metadata}
+\item{location}{a data.frame with location metadata. Must contain the following columns: local_id, description, parent_local_id, datafield_local_id and external_code. Other columns are ignored.}
 
-\item{datafield}{a data.frame with datafield metadata}
+\item{datafield}{a data.frame with datafield metadata. Must contain the variables local_id, datasource, table_name, primary_key and datafield_type. Other variables are ignored.}
 
 \item{conn}{a DBIconnection}
 
