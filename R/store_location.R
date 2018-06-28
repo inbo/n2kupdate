@@ -7,6 +7,7 @@
 #' @importFrom dplyr %>% select mutate rowwise inner_join left_join transmute arrange filter
 #' @importFrom rlang .data
 #' @importFrom DBI dbQuoteIdentifier dbWriteTable dbGetQuery dbRemoveTable
+#' @importFrom purrr pmap map_chr
 #' @export
 #' @details
 #'
@@ -82,7 +83,7 @@ parent_local_id are found in location."
 
   datafield.sql <- paste0("datafield_", hash) %>%
     dbQuoteIdentifier(conn = conn)
-  location <- sprintf("
+  sprintf("
     SELECT
       df.local_id AS datafield_local_id,
       df.fingerprint AS datafield
@@ -102,42 +103,56 @@ parent_local_id are found in location."
   ) %>%
     dbGetQuery(conn = conn) %>%
     inner_join(location, by = "datafield_local_id") %>%
-    rowwise() %>%
     mutate(
-      fingerprint = ifelse(
-        is.na(.data$parent_local_id),
-        sha1(c(
+      parent_fingerprint = NA,
+      fingerprint = pmap(
+        list(
+          parent_fingerprint = .data$parent_fingerprint,
           datafield = .data$datafield,
           external_code = .data$external_code
-        )),
+        ),
+        c
+      ) %>%
+        map_chr(sha1),
+      fingerprint = ifelse(
+        is.na(.data$parent_local_id),
+        .data$fingerprint,
         NA
       )
-    )
+    ) -> location
   repeat {
-    location <- location %>%
+    location %>%
       left_join(
         location %>%
           filter(!is.na(.data$fingerprint)) %>%
           select(
             parent_local_id = .data$local_id,
-            parent_fingerprint = .data$fingerprint
+            new_parent = .data$fingerprint
           ),
         by = "parent_local_id"
       ) %>%
       mutate(
-        fingerprint = ifelse(
-          is.na(.data$fingerprint),
-          ifelse(
-            !is.na(.data$parent_fingerprint),
-            sha1(c(
-              datafield = .data$datafield,
-              external_code = .data$external_code
-            )),
-            NA
+        parent_fingerprint = ifelse(
+          is.na(.data$parent_fingerprint),
+          .data$new_parent,
+          .data$parent_fingerprint
+        ),
+        new_fingerprint = pmap(
+          list(
+            parent_fingerprint = .data$parent_fingerprint,
+            datafield = .data$datafield,
+            external_code = .data$external_code
           ),
+          c
+        ) %>%
+          map_chr(sha1),
+        fingerprint = ifelse(
+          is.na(.data$fingerprint) & !is.na(.data$parent_fingerprint),
+          .data$new_fingerprint,
           .data$fingerprint
-        )
-      )
+        ),
+      ) %>%
+      select(-.data$new_parent, -.data$new_fingerprint) -> location
     if (isTRUE(all.equal(
       is.na(location$parent_local_id),
       is.na(location$parent_fingerprint)
