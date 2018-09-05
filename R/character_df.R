@@ -12,7 +12,7 @@ character_df <- function(x, ...){
   )
   factors <- sapply(x, is.factor)
   for (i in which(factors)) {
-    x[, i] <- levels(x[, i])[x[, i]]
+    x[[i]] <- levels(x[[i]])[x[[i]]]
   }
   return(x)
 }
