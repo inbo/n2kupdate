@@ -1185,5 +1185,19 @@ found in species_group_species."
   expect_false(any(is.na(stored$species_group_id)))
   expect_identical(nrow(stored), nrow(ut.species_group_species))
 
+  expect_is(
+    output <- store_species_group_species(
+      species = ut.species,
+      language = ut.language,
+      source_species = ut.source_species,
+      source_species_species = ut.source_species_species,
+      datafield = ut.datafield,
+      species_group = ut.species_group,
+      species_group_species = ut.species_group_species2,
+      conn = conn
+    ),
+    "list"
+  )
+
   DBI::dbDisconnect(conn)
 })
