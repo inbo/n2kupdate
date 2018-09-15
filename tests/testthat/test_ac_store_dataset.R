@@ -10,7 +10,7 @@ ut.dataset <- data.frame(
 )
 ut.dataset2 <- data.frame(
   fingerprint = ut,
-  filename = rev(ut),
+  filename = ut,
   datasource = DBI::dbReadTable(conn, "datasource")$fingerprint,
   import_date = as.POSIXct(Sys.time()),
   stringsAsFactors = TRUE

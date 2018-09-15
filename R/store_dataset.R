@@ -59,9 +59,17 @@ store_dataset <- function(dataset, conn, clean = TRUE, hash){
         sd.datasource = pds.fingerprint
       )
     LEFT JOIN
-      public.dataset AS pd
+      (
+        public.dataset AS pd
+      INNER JOIN
+        public.datasource AS pds2
+      ON
+        pd.datasource = pds2.id
+      )
     ON
-      sd.fingerprint = pd.fingerprint
+      sd.fingerprint = pd.fingerprint AND
+      sd.filename = pd.filename AND
+      sd.datasource = pds2.fingerprint
     WHERE
       pd.id IS NULL",
     dataset.sql
