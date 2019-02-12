@@ -86,4 +86,21 @@ if (
     hash <- store_n2kResult(object = object, conn = conn, clean = TRUE),
     "character"
   )
+  object@Contrast <- data.frame(
+    Fingerprint = "1",
+    Description = "junk",
+    Analysis = object@AnalysisMetadata$FileFingerprint
+  )
+  object@ContrastCoefficient <- data.frame(
+    Contrast = "1",
+    Parameter = object@ParameterEstimate[3:4, "Parameter"],
+    Coefficient = 1
+  )
+  object@ContrastEstimate <- data.frame(
+    Contrast = "1",
+    Estimate = 0,
+    LowerConfidenceLimit = -1,
+    UpperConfidenceLimit = 1
+  )
+  expect_true(validObject(object))
 }

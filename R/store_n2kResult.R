@@ -12,7 +12,6 @@
 store_n2kResult <- function(object, conn, hash, clean = TRUE) {
   assert_that(inherits(object, "n2kResult"))
   validObject(object)
-  stopifnot(nrow(object@Contrast) == 0)
 
   if (missing(hash)) {
     hash <- sha1(
@@ -159,6 +158,78 @@ store_n2kResult <- function(object, conn, hash, clean = TRUE) {
       stop(e)
     }
   )
+  if (nrow(object@Contrast) > 0) {
+    object@Contrast %>%
+      left_join(
+        object@ContrastEstimate,
+        by = c("Fingerprint" = "Contrast")
+      ) %>%
+      rename(
+        local_id = "Fingerprint",
+        analysis = "Analysis",
+        description = "Description",
+        estimate = "Estimate",
+        lcl = "LowerConfidenceLimit",
+        ucl = "UpperConfidenceLimit"
+      ) %>%
+      mutate(
+        fingerprint = map2_chr(
+          .data$analysis,
+          .data$description,
+          ~sha1(c(analysis = .x, description = .y)),
+        )
+      ) %>%
+      as.data.frame() %>%
+      dbWriteTable(
+        conn = conn,
+        name = c("staging", paste0("contrast_", hash)),
+        row.names = FALSE
+      )
+    contrast.sql <- paste0("contrast_", hash) %>%
+      dbQuoteIdentifier(conn = conn)
+    object@ContrastCoefficient %>%
+      rename(
+        contrast_local_id = "Contrast",
+        parameter_local_id = "Parameter",
+        constant = "Coefficient"
+      ) %>%
+      as.data.frame() %>%
+      dbWriteTable(
+        conn = conn,
+        name = c("staging", paste0("contrast_coefficient_", hash)),
+        row.names = FALSE
+      )
+    contrast_coefficient.sql <- paste0("contrast_coefficient_", hash) %>%
+      dbQuoteIdentifier(conn = conn)
+    parameter.sql <- paste0("parameter_", hash) %>%
+      dbQuoteIdentifier(conn = conn)
+    sprintf("
+      INSERT INTO public.contrast
+        (fingerprint, analysis, description, estimate, lcl, ucl)
+      SELECT
+        sc.fingerprint, pa.id AS analysis, sc.description,
+        sc.estimate, sc.lcl, sc.ucl
+      FROM staging.%s AS sc
+      INNER JOIN public.analysis AS pa ON sc.analysis = pa.file_fingerprint
+      LEFT JOIN public.contrast AS pc
+        ON sc.fingerprint = pc.fingerprint AND pa.id = pc.analysis
+      WHERE pc.id IS NULL",
+      contrast.sql
+    ) %>%
+      dbGetQuery(conn = conn)
+    sprintf("
+      SELECT *
+      FROM staging.%s AS scc
+      INNER JOIN staging.%s AS sc ON scc.contrast_local_id = sc.local_id
+      INNER JOIN public.parameter AS pp ON scc.parameter_local_id = pp.fingerprint",
+      contrast_coefficient.sql,
+      contrast.sql
+    ) %>%
+      dbGetQuery(conn = conn)
+    sprintf("SELECT * FROM staging.%s", parameter.sql) %>%
+      dbGetQuery(conn = conn) %>%
+      head()
+  }
 
   if (clean) {
     dbRemoveTable(conn, c("staging", paste0("analysis_", hash)))
