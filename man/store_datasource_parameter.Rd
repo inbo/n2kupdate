@@ -4,7 +4,8 @@
 \alias{store_datasource_parameter}
 \title{Store a vector of datasource parameters}
 \usage{
-store_datasource_parameter(datasource_parameter, hash, conn, clean = TRUE)
+store_datasource_parameter(datasource_parameter, hash, conn,
+  clean = TRUE)
 }
 \arguments{
 \item{datasource_parameter}{the vector with datasource parameters.}

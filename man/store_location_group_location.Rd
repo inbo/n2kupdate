@@ -4,8 +4,8 @@
 \alias{store_location_group_location}
 \title{store the link between locations and location groups in the database}
 \usage{
-store_location_group_location(location_group_location, location_group, location,
-  datafield, conn, hash, clean = TRUE)
+store_location_group_location(location_group_location, location_group,
+  location, datafield, conn, hash, clean = TRUE)
 }
 \arguments{
 \item{location_group_location}{a data.frame with the locations per location group. Must contain location_group_local_id and location_local_id. Other columns are ignored.}

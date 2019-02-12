@@ -4,8 +4,8 @@
 \alias{store_n2kManifest}
 \title{store all models from an n2kManifest}
 \usage{
-store_n2kManifest(manifest, base, project, conn, status = "converged", hash,
-  clean = TRUE)
+store_n2kManifest(manifest, base, project, conn, status = "converged",
+  hash, clean = TRUE)
 }
 \arguments{
 \item{manifest}{a \code{\link[n2kanalysis]{n2kManifest-class}}}
