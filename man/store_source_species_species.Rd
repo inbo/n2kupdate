@@ -8,7 +8,7 @@ store_source_species_species(species, language, source_species,
   source_species_species, datafield, conn, hash, clean = TRUE)
 }
 \arguments{
-\item{species}{a data.frame with species metadata. Must contain at least local_id, scientific_name and nbn_key. Other variable names must match the values in language$code..}
+\item{species}{a data.frame with species metadata. Must contain at least `local_id`, `scientific_name` and `nbn_key`. Other variable names must match the values in `language$code`.}
 
 \item{language}{the data.frame with language Must contains code and description. Other variables are ignored. code and description must have unique values.}
 
