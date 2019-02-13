@@ -50,6 +50,11 @@ ut.language2 <- data.frame(
   description = c("Dutch", "English"),
   stringsAsFactors = TRUE
 )
+ut.language3 <- data.frame(
+  code = c("nl", "en"),
+  description = c("Nederlands", "English"),
+  stringsAsFactors = FALSE
+)
 ut.species <- data.frame(
   local_id = ut,
   scientific_name = ut,
@@ -392,22 +397,15 @@ test_that("store_language() works fine", {
     expect_identical(
       dbGetQuery(
         conn,
-        "SELECT
-          code,
-          description
-        FROM
-          public.language
-        ORDER BY
-          code, description;"
+        "SELECT code, description
+        FROM public.language
+        ORDER BY code, description;"
       )
     )
 
   expect_is(
     lang <- store_language(
-      language = ut.language2,
-      conn = conn,
-      clean = FALSE,
-      hash = "junk"
+      language = ut.language2, conn = conn, clean = FALSE, hash = "junk"
     ),
     "SQL"
   )
@@ -424,15 +422,16 @@ test_that("store_language() works fine", {
     expect_identical(
       dbGetQuery(
         conn,
-        "SELECT
-          code,
-          description
-        FROM
-          public.language
-        ORDER BY
-          code, description;"
+        "SELECT code, description
+        FROM public.language
+        ORDER BY code, description;"
       )
     )
+
+  expect_is(lang <- store_language(language = ut.language3, conn = conn), "SQL")
+  dbGetQuery(conn, "SELECT code, description FROM public.language") %>%
+    left_join(x = ut.language3, by = "code") -> check
+  expect_equal(check$description.x, check$description.y)
 
   DBI::dbDisconnect(conn)
 })
