@@ -48,7 +48,7 @@ if (
   Seatbelts %>%
     as.data.frame() %>%
     mutate(
-      DatasourceID = sha1(this_datasource_id),
+      DataFieldID = this_field_id,
       local_id = seq_len(nrow(Seatbelts)),
       year = ceiling(local_id / 12)
     ) -> Seatbelts

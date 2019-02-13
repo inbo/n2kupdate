@@ -227,8 +227,7 @@ store_n2kResult <- function(object, conn, hash, clean = TRUE) {
     ) %>%
       dbGetQuery(conn = conn)
     sprintf("SELECT * FROM staging.%s", parameter.sql) %>%
-      dbGetQuery(conn = conn) %>%
-      head()
+      dbGetQuery(conn = conn)
   }
 
   if (clean) {
