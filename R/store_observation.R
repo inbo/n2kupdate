@@ -7,64 +7,41 @@
 #' @export
 #' @importFrom assertthat assert_that has_name noNA is.flag are_equal
 #' @importFrom digest sha1
-#' @importFrom dplyr %>% select anti_join inner_join left_join rowwise mutate filter
+#' @importFrom dplyr %>% select anti_join inner_join left_join mutate filter
 #' @importFrom DBI dbReadTable dbWriteTable dbGetQuery dbRemoveTable dbQuoteIdentifier
+#' @importFrom purrr pmap_chr
 store_observation <- function(
-  datafield,
-  observation,
-  location,
-  parameter,
-  conn,
-  hash,
-  clean = TRUE
-){
-  assert_that(is.flag(clean))
-  assert_that(noNA(clean))
-
-  assert_that(inherits(conn, "DBIConnection"))
+  datafield, observation, location, parameter, conn, hash, clean = TRUE
+) {
+  assert_that(is.flag(clean), noNA(clean), inherits(conn, "DBIConnection"))
 
   observation <- character_df(observation)
-  assert_that(has_name(observation, "local_id"))
-  assert_that(has_name(observation, "datafield_local_id"))
-  assert_that(has_name(observation, "external_code"))
-  assert_that(has_name(observation, "location_local_id"))
-  assert_that(has_name(observation, "year"))
-  assert_that(has_name(observation, "parameter_local_id"))
-
   assert_that(
+    has_name(observation, "local_id"), has_name(observation, "external_code"),
+    has_name(observation, "datafield_local_id"), has_name(observation, "year"),
+    has_name(observation, "location_local_id"),
+    has_name(observation, "parameter_local_id"),
     noNA(
       select(observation, .data$local_id, .data$location_local_id, .data$year)
-    )
-  )
-
-  assert_that(are_equal(anyDuplicated(observation$local_id), 0L))
-
+    ),
+    are_equal(anyDuplicated(observation$local_id), 0L))
   if (any(
     is.na(observation$datafield_local_id) != is.na(observation$external_code)
   )) {
     stop("provide either both datafield and external_code or neither")
   }
+
   dupl <- observation %>%
-    select(
-      .data$datafield_local_id,
-      .data$external_code,
-      .data$location_local_id,
-      .data$year,
-      .data$parameter_local_id
-    ) %>%
+    select("datafield_local_id", "external_code", "location_local_id", "year",
+           "parameter_local_id") %>%
     anyDuplicated()
   if (dupl > 0) {
     stop("duplicated values in observation")
   }
 
   if (missing(hash)) {
-    hash <- sha1(list(
-      observation,
-      datafield,
-      location,
-      parameter,
-      as.POSIXct(Sys.time())
-    ))
+    hash <- sha1(list(observation, datafield, location, parameter,
+                      as.POSIXct(Sys.time())))
   } else {
     assert_that(is.string(hash))
   }
@@ -74,13 +51,8 @@ store_observation <- function(
   }
 
   location_stored <- tryCatch(
-    store_location(
-      location = location,
-      datafield = datafield,
-      hash = hash,
-      conn = conn,
-      clean = FALSE
-    ),
+    store_location(location = location, datafield = datafield, hash = hash,
+                   conn = conn, clean = FALSE),
     error = function(e){
       if (clean) {
         dbRollback(conn)
@@ -90,12 +62,8 @@ store_observation <- function(
   )
 
   parameter_stored <- tryCatch(
-    store_parameter(
-      parameter = parameter,
-      hash = hash,
-      conn = conn,
-      clean = FALSE
-    ),
+    store_parameter(parameter = parameter, hash = hash, conn = conn,
+                    clean = FALSE),
     error = function(e){
       if (clean) {
         dbRollback(conn)
@@ -105,9 +73,7 @@ store_observation <- function(
   )
 
   datafield_stored <- dbReadTable(
-    conn = conn,
-    name = c("staging", paste0("datafield_", hash))
-  )
+    conn = conn, name = c("staging", paste0("datafield_", hash)))
 
   at <- observation %>%
     anti_join(location_stored, by = c("location_local_id" = "local_id")) %>%
@@ -118,10 +84,8 @@ store_observation <- function(
   observation_stored <- observation %>%
     inner_join(
       location_stored %>%
-        select(
-          location_local_id = .data$local_id,
-          location_fingerprint = .data$fingerprint
-        ),
+        select(location_local_id = "local_id",
+               location_fingerprint = "fingerprint"),
       by = "location_local_id"
     )
 
@@ -137,10 +101,8 @@ store_observation <- function(
     observation_stored <- observation_stored %>%
       left_join(
         datafield_stored %>%
-          select(
-            datafield_local_id = .data$local_id,
-            datafield_fingerprint = .data$fingerprint
-          ),
+          select(datafield_local_id = "local_id",
+                 datafield_fingerprint = "fingerprint"),
         by = "datafield_local_id"
       )
   } else {
@@ -160,10 +122,8 @@ store_observation <- function(
     observation_stored <- observation_stored %>%
       left_join(
         parameter_stored %>%
-          select(
-            parameter_local_id = .data$local_id,
-            parameter_fingerprint = .data$fingerprint
-          ),
+          select(parameter_local_id = "local_id",
+                 parameter_fingerprint = "fingerprint"),
         by = "parameter_local_id"
       )
   } else {
@@ -171,26 +131,21 @@ store_observation <- function(
       mutate(parameter_fingerprint = NA_character_)
   }
   observation_stored <- observation_stored %>%
-    rowwise() %>%
     mutate(
-      fingerprint = sha1(c(
-        datafield = .data$datafield_fingerprint,
-        external_code = .data$external_code,
-        location = .data$location_fingerprint,
-        year = .data$year,
-        parameter = .data$parameter_fingerprint
-      ))
+      fingerprint = pmap_chr(
+        list(df = .data$datafield_fingerprint, ec = .data$external_code,
+             loc = .data$location_fingerprint, year = .data$year,
+             param = .data$parameter_fingerprint
+        ),
+        function(df, ec, loc, year, param) {
+          sha1(c(datafield = df, external_code = ec, location = loc, year = year, parameter = param))
+        }
+      )
     )
   observation_stored %>%
-    select(
-      .data$local_id,
-      .data$fingerprint,
-      datafield = .data$datafield_fingerprint,
-      .data$external_code,
-      location = .data$location_fingerprint,
-      .data$year,
-      parameter = .data$parameter_fingerprint
-    ) %>%
+    select("local_id", "fingerprint", datafield = "datafield_fingerprint",
+           "external_code", location = "location_fingerprint", "year",
+            parameter = "parameter_fingerprint") %>%
     as.data.frame() %>%
     dbWriteTable(
       conn = conn,
@@ -208,41 +163,16 @@ store_observation <- function(
     INSERT INTO public.observation
       (fingerprint, datafield, external_code, location, year, parameter)
     SELECT
-      s.fingerprint AS fingerprint,
-      d.id AS datafield,
-      s.external_code AS external_code,
-      l.id AS location,
-      s.year AS year,
+      s.fingerprint AS fingerprint, d.id AS datafield,
+      s.external_code AS external_code, l.id AS location, s.year AS year,
       pm.id AS parameter
-    FROM
-      (
-        (
-          (
-            staging.%s AS s
-          INNER JOIN
-            staging.%s AS l
-          ON
-            s.location = l.fingerprint
-          )
-        LEFT JOIN
-          staging.%s AS d
-        ON
-          s.datafield = d.fingerprint
-        )
-      LEFT JOIN
-        public.parameter AS pm
-      ON
-        s.parameter = pm.fingerprint
-      )
-    LEFT JOIN
-      public.observation AS p
-    ON
-      s.fingerprint = p.fingerprint
-    WHERE
-      p.id IS NULL;",
-    observation.sql,
-    location.sql,
-    datafield.sql
+    FROM staging.%s AS s
+    INNER JOIN staging.%s AS l ON s.location = l.fingerprint
+    LEFT JOIN staging.%s AS d ON s.datafield = d.fingerprint
+    LEFT JOIN public.parameter AS pm ON s.parameter = pm.fingerprint
+    LEFT JOIN public.observation AS p ON s.fingerprint = p.fingerprint
+    WHERE p.id IS NULL;",
+    observation.sql, location.sql, datafield.sql
   ) %>%
     dbGetQuery(conn = conn)
 
@@ -256,7 +186,7 @@ store_observation <- function(
   }
 
   observation_stored <- observation_stored %>%
-    select(.data$local_id, .data$fingerprint)
+    select("local_id", "fingerprint", datafield_id = "datafield_fingerprint")
   attr(observation_stored, "hash") <- hash
   return(observation_stored)
 }

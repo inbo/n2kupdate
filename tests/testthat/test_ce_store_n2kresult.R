@@ -48,7 +48,7 @@ if (
   Seatbelts %>%
     as.data.frame() %>%
     mutate(
-      DatasourceID = sha1(this_datasource_id),
+      DataFieldID = this_field_id,
       local_id = seq_len(nrow(Seatbelts)),
       year = ceiling(local_id / 12)
     ) -> Seatbelts
@@ -86,4 +86,21 @@ if (
     hash <- store_n2kResult(object = object, conn = conn, clean = TRUE),
     "character"
   )
+  object@Contrast <- data.frame(
+    Fingerprint = "1",
+    Description = "junk",
+    Analysis = object@AnalysisMetadata$FileFingerprint
+  )
+  object@ContrastCoefficient <- data.frame(
+    Contrast = "1",
+    Parameter = object@ParameterEstimate[3:4, "Parameter"],
+    Coefficient = 1
+  )
+  object@ContrastEstimate <- data.frame(
+    Contrast = "1",
+    Estimate = 0,
+    LowerConfidenceLimit = -1,
+    UpperConfidenceLimit = 1
+  )
+  expect_true(validObject(object))
 }

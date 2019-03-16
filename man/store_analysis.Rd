@@ -4,8 +4,8 @@
 \alias{store_analysis}
 \title{store source species in the database}
 \usage{
-store_analysis(analysis, model_set, analysis_version, analysis_relation, conn,
-  hash, clean = TRUE)
+store_analysis(analysis, model_set, analysis_version, analysis_relation,
+  conn, hash, clean = TRUE)
 }
 \arguments{
 \item{analysis}{a data.frame with file_fingerprint, model_set_local_id, location_group, species_group, last_year, seed, analysis_version, analysis_date, status and status_fingerprint.}

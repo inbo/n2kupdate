@@ -1,6 +1,7 @@
 context("store_species")
 conn <- connect_ut_db()
 ut <- sprintf("unit test %i", 1:2)
+ut2 <- sprintf("unit test %i", 3:4)
 ut.species_group <- data.frame(
   local_id = ut,
   description = ut,
@@ -50,6 +51,11 @@ ut.language2 <- data.frame(
   description = c("Dutch", "English"),
   stringsAsFactors = TRUE
 )
+ut.language3 <- data.frame(
+  code = c("nl", "en"),
+  description = c("Nederlands", "English"),
+  stringsAsFactors = FALSE
+)
 ut.species <- data.frame(
   local_id = ut,
   scientific_name = ut,
@@ -71,6 +77,14 @@ ut.species3 <- data.frame(
   scientific_name = ut,
   nbn_key = ut,
   junk = ut,
+  stringsAsFactors = FALSE
+)
+ut.species4 <- data.frame(
+  local_id = ut,
+  scientific_name = ut2,
+  nbn_key = ut,
+  nl = ut2,
+  en = ut,
   stringsAsFactors = FALSE
 )
 ut.source_species_species_dup <- data.frame(
@@ -392,22 +406,15 @@ test_that("store_language() works fine", {
     expect_identical(
       dbGetQuery(
         conn,
-        "SELECT
-          code,
-          description
-        FROM
-          public.language
-        ORDER BY
-          code, description;"
+        "SELECT code, description
+        FROM public.language
+        ORDER BY code, description;"
       )
     )
 
   expect_is(
     lang <- store_language(
-      language = ut.language2,
-      conn = conn,
-      clean = FALSE,
-      hash = "junk"
+      language = ut.language2, conn = conn, clean = FALSE, hash = "junk"
     ),
     "SQL"
   )
@@ -424,15 +431,16 @@ test_that("store_language() works fine", {
     expect_identical(
       dbGetQuery(
         conn,
-        "SELECT
-          code,
-          description
-        FROM
-          public.language
-        ORDER BY
-          code, description;"
+        "SELECT code, description
+        FROM public.language
+        ORDER BY code, description;"
       )
     )
+
+  expect_is(lang <- store_language(language = ut.language3, conn = conn), "SQL")
+  dbGetQuery(conn, "SELECT code, description FROM public.language") %>%
+    left_join(x = ut.language3, by = "code") -> check
+  expect_equal(check$description.x, check$description.y)
 
   DBI::dbDisconnect(conn)
 })
@@ -442,10 +450,7 @@ test_that("store_species() works fine", {
 
   expect_error(
     spec <- store_species(
-      species = ut.species,
-      language = "junk",
-      hash = "junk",
-      conn = conn
+      species = ut.species, language = "junk", hash = "junk", conn = conn
     ),
     "language does not inherit from class data\\.frame"
   )
@@ -462,9 +467,7 @@ test_that("store_species() works fine", {
 
   expect_is(
     spec <- store_species(
-      species = ut.species,
-      language = ut.language,
-      conn = conn
+      species = ut.species, language = ut.language, conn = conn
     ),
     "data.frame"
   )
@@ -482,27 +485,14 @@ test_that("store_species() works fine", {
 
   stored <- dbGetQuery(conn, "
     SELECT
-      s.id,
-      s.scientific_name,
-      s.nbn_key,
-      l.code AS language,
+      s.id, s.scientific_name, s.nbn_key, l.code AS language,
       scn.description AS common
-    FROM
-      species AS s
-    INNER JOIN
-      (
-        species_common_name AS scn
-      INNER JOIN
-        language AS l
-      ON
-        scn.language = l.id
-      )
-    ON
-      s.id = scn.species
-    WHERE
-      scn.destroy IS NULL
+    FROM species AS s
+    INNER JOIN species_common_name AS scn ON s.id = scn.species
+    INNER JOIN language AS l ON scn.language = l.id
+    WHERE scn.destroy IS NULL
   ") %>%
-    tidyr::spread_(key_col = "language", value_col = "common") %>%
+    tidyr::spread(key = "language", value = "common") %>%
     dplyr::full_join(
       ut.species,
       by = c("nbn_key", "scientific_name", "nl", "en")
@@ -513,19 +503,13 @@ test_that("store_species() works fine", {
 
   expect_is(
     spec <- store_species(
-      species = ut.species2,
-      language = ut.language,
-      clean = FALSE,
-      hash = "junk",
-      conn = conn
+      species = ut.species2, language = ut.language, clean = FALSE,
+      hash = "junk", conn = conn
     ),
     "data.frame"
   )
 
-  expect_identical(
-    attr(spec, which = "hash", exact = TRUE),
-    "junk"
-  )
+  expect_identical(attr(spec, which = "hash", exact = TRUE), "junk")
   c("staging", "language_junk") %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_true()
@@ -548,30 +532,16 @@ test_that("store_species() works fine", {
 
   stored <- dbGetQuery(conn, "
     SELECT
-      s.id,
-      s.scientific_name,
-      s.nbn_key,
-      l.code AS language,
+      s.id, s.scientific_name, s.nbn_key, l.code AS language,
       scn.description AS common
-    FROM
-      species AS s
-    INNER JOIN
-      (
-        species_common_name AS scn
-      INNER JOIN
-        language AS l
-      ON
-        scn.language = l.id
-      )
-    ON
-      s.id = scn.species
-    WHERE
-      scn.destroy IS NULL
+    FROM species AS s
+    INNER JOIN species_common_name AS scn ON s.id = scn.species
+    INNER JOIN language AS l ON scn.language = l.id
+    WHERE scn.destroy IS NULL
   ") %>%
-    tidyr::spread_(key_col = "language", value_col = "common") %>%
+    tidyr::spread(key = "language", value = "common") %>%
     dplyr::full_join(
-      ut.species2 %>%
-        character_df(),
+      character_df(ut.species2),
       by = c("nbn_key", "scientific_name", "nl", "en")
     )
   expect_false(any(is.na(stored$local_id)))
@@ -580,10 +550,7 @@ test_that("store_species() works fine", {
 
   expect_error(
     store_species(
-      species = ut.species3,
-      language = ut.language,
-      hash = "junk",
-      conn = conn
+      species = ut.species3, language = ut.language, hash = "junk", conn = conn
     ),
     "'junk' is not available is language\\$code"
   )
@@ -597,6 +564,42 @@ test_that("store_species() works fine", {
   c("staging", paste0("species_common_name_", hash)) %>%
     DBI::dbExistsTable(conn = conn) %>%
     expect_false()
+
+  expect_is(
+    spec <- store_species(
+      species = ut.species4, language = ut.language, conn = conn
+    ),
+    "data.frame"
+  )
+
+  hash <- attr(spec, which = "hash", exact = TRUE)
+  c("staging", paste0("language_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_common_name_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+  c("staging", paste0("species_", hash)) %>%
+    DBI::dbExistsTable(conn = conn) %>%
+    expect_false()
+
+  stored <- dbGetQuery(conn, "
+    SELECT
+      s.id, s.scientific_name, s.nbn_key, l.code AS language,
+      scn.description AS common
+    FROM species AS s
+    INNER JOIN species_common_name AS scn ON s.id = scn.species
+    INNER JOIN language AS l ON scn.language = l.id
+    WHERE scn.destroy IS NULL
+  ") %>%
+    tidyr::spread(key = "language", value = "common") %>%
+    dplyr::full_join(
+      ut.species4,
+      by = c("nbn_key", "scientific_name", "nl", "en")
+    )
+  expect_false(any(is.na(stored$local_id)))
+  expect_false(any(is.na(stored$id)))
+  expect_identical(nrow(stored), nrow(ut.species4))
 
   DBI::dbDisconnect(conn)
 })
