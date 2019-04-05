@@ -212,5 +212,5 @@ store_location_group_location <- function(
     dbCommit(conn)
   }
 
-  return(staging.location_group)
+  return(list(location_group = staging.location_group, location = location))
 }

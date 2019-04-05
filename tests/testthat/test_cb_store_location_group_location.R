@@ -59,15 +59,16 @@ test_that("it stores the correct information", {
   conn <- connect_ut_db()
 
   expect_is(
-    staging.location_group <- store_location_group_location(
+    slg <- store_location_group_location(
       location_group_location = ut.location_group_location,
       location_group = ut.location_group,
       location = ut.location,
       datafield = ut.datafield,
       conn = conn
     ),
-    "data.frame"
+    "list"
   )
+  expect_is(staging.location_group <- slg$location_group, "data.frame")
   expect_is(
     hash <- attr(staging.location_group, "hash"),
     "character"
@@ -165,7 +166,7 @@ test_that("it stores the correct information", {
   )
   ut.location_group$description <- factor(ut.location_group$description)
   expect_is(
-    staging.location_group <- store_location_group_location(
+    slg <- store_location_group_location(
       location_group_location = ut.location_group_location,
       location_group = ut.location_group,
       location = ut.location,
@@ -174,8 +175,9 @@ test_that("it stores the correct information", {
       conn = conn,
       clean = FALSE
     ),
-    "data.frame"
+    "list"
   )
+  expect_is(staging.location_group <- slg$location_group, "data.frame")
   expect_identical(
     hash <- attr(staging.location_group, "hash"),
     "junk"
