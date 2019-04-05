@@ -305,19 +305,19 @@ test_that("subfunction works correctly", {
     ut.location_group %>%
       select(-local_id) %>%
       store_location_group(conn = conn),
-    "location_group does not have name local_id"
+    "location_group does not have .*name.*local_id"
   )
   expect_error(
     ut.location_group %>%
       select(-description) %>%
       store_location_group(conn = conn),
-    "location_group does not have name description"
+    "location_group does not have .*name.*description"
   )
   expect_error(
     ut.location_group %>%
       select(-scheme) %>%
       store_location_group(conn = conn),
-    "location_group does not have name scheme"
+    "location_group does not have .*name.*scheme"
   )
   expect_is(
     staging.location_group <- store_location_group(

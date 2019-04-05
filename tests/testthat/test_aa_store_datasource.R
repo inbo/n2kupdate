@@ -45,19 +45,19 @@ test_that("input is suitable", {
     ut.datasource %>%
       select(-description) %>%
       store_datasource(conn),
-    "datasource does not have name description"
+    "datasource does not have .*name.*description"
   )
   expect_error(
     ut.datasource %>%
       select(-datasource_type) %>%
       store_datasource(conn),
-    "datasource does not have name datasource_type"
+    "datasource does not have .*name.*datasource_type"
   )
   expect_error(
     ut.datasource %>%
       select(-connect_method) %>%
       store_datasource(conn),
-    "datasource does not have name connect_method"
+    "datasource does not have .*name.*connect_method"
   )
   DBI::dbDisconnect(conn)
 })

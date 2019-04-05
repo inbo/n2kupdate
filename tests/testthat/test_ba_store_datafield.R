@@ -37,31 +37,31 @@ test_that("input is suitable", {
     ut.datafield %>%
       select(-local_id) %>%
       store_datafield(conn),
-    "datafield does not have name local_id"
+    "datafield does not have .*name.*local_id"
   )
   expect_error(
     ut.datafield %>%
       select(-datasource) %>%
       store_datafield(conn),
-    "datafield does not have name datasource"
+    "datafield does not have .*name.*datasource"
   )
   expect_error(
     ut.datafield %>%
       select(-datafield_type) %>%
       store_datafield(conn),
-    "datafield does not have name datafield_type"
+    "datafield does not have .*name.*datafield_type"
   )
   expect_error(
     ut.datafield %>%
       select(-table_name) %>%
       store_datafield(conn),
-    "datafield does not have name table_name"
+    "datafield does not have .*name.*table_name"
   )
   expect_error(
     ut.datafield %>%
       select(-primary_key) %>%
       store_datafield(conn),
-    "datafield does not have name primary_key"
+    "datafield does not have .*name.*primary_key"
   )
   DBI::dbDisconnect(conn)
 })

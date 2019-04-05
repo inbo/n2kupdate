@@ -37,31 +37,31 @@ test_that("input is suitable", {
     ut.location %>%
       select(-local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
-    "location does not have name local_id"
+    "location does not have .*name.*local_id"
   )
   expect_error(
     ut.location %>%
       select(-description) %>%
       store_location(datafield = ut.datafield, conn = conn),
-    "location does not have name description"
+    "location does not have .*name.*description"
   )
   expect_error(
     ut.location %>%
       select(-parent_local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
-    "location does not have name parent_local_id"
+    "location does not have .*name.*parent_local_id"
   )
   expect_error(
     ut.location %>%
       select(-datafield_local_id) %>%
       store_location(datafield = ut.datafield, conn = conn),
-    "location does not have name datafield_local_id"
+    "location does not have .*name.*datafield_local_id"
   )
   expect_error(
     ut.location %>%
       select(-external_code) %>%
       store_location(datafield = ut.datafield, conn = conn),
-    "location does not have name external_code"
+    "location does not have .*name.*external_code"
   )
   ut.duplicate <- rbind(ut.location, ut.location) %>%
     mutate(local_id = letters[seq_along(local_id)])
